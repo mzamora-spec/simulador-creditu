@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador Creditu - Financiamiento del Pie</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#ffffff; --ink:#0f172a; --muted:#64748b;
+    --line:#e2e8f0; --brand:#2563eb; --brand-d:#1d4ed8;
+    --green:#059669; --green-bg:#ecfdf5; --amber:#d97706; --amber-bg:#fffbeb;
+    --red:#dc2626; --creditu:#7c3aed; --creditu-bg:#f5f3ff;
+    --trad:#0f766e; --trad-bg:#f0fdfa;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f1f5f9;color:var(--ink);
+       line-height:1.4;-webkit-font-smoothing:antialiased}
+  header{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;padding:22px 28px}
+  header h1{margin:0;font-size:20px;letter-spacing:.3px}
+  header p{margin:4px 0 0;color:#cbd5e1;font-size:13px}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+  .grid{display:grid;grid-template-columns:380px 1fr;gap:22px;align-items:start}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+        box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .card h2{margin:0;padding:14px 18px;font-size:14px;border-bottom:1px solid var(--line);
+           text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  .card .body{padding:16px 18px}
+  label{display:block;font-size:12px;font-weight:bold;color:var(--muted);margin:12px 0 5px;
+        text-transform:uppercase;letter-spacing:.3px}
+  label:first-child{margin-top:0}
+  input,select{width:100%;padding:9px 11px;font-size:14px;border:1px solid var(--line);
+    border-radius:8px;font-family:inherit;background:#fff;color:var(--ink)}
+  input:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+  input[readonly]{background:#f8fafc;color:var(--muted);font-weight:bold}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hint{font-size:11px;color:var(--muted);margin-top:4px;font-weight:normal;text-transform:none;letter-spacing:0}
+  .unitinfo{background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:6px;font-size:12px;color:var(--muted)}
+  .unitinfo b{color:var(--ink)}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:640px){.cols{grid-template-columns:1fr}}
+  .panel{border-radius:12px;padding:18px;border:1px solid}
+  .panel.creditu{background:var(--creditu-bg);border-color:#ddd6fe}
+  .panel.trad{background:var(--trad-bg);border-color:#99f6e4}
+  .panel h3{margin:0 0 4px;font-size:15px}
+  .panel.creditu h3{color:var(--creditu)}
+  .panel.trad h3{color:var(--trad)}
+  .panel .sub{font-size:12px;color:var(--muted);margin-bottom:14px}
+  .line{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px dashed rgba(0,0,0,.08);font-size:13px}
+  .line:last-child{border-bottom:none}
+  .line .lbl{color:var(--muted)}
+  .line .val{font-weight:bold;font-variant-numeric:tabular-nums}
+  .big{margin-top:12px;padding:14px;border-radius:10px;background:#fff;border:1px solid rgba(0,0,0,.06)}
+  .big .cap{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  .big .amt{font-size:26px;font-weight:bold;font-variant-numeric:tabular-nums;margin-top:2px}
+  .panel.creditu .big .amt{color:var(--creditu)}
+  .panel.trad .big .amt{color:var(--trad)}
+  .verdict{margin-top:18px;border-radius:12px;padding:18px 20px;border:1px solid var(--line);background:#fff}
+  .verdict .top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px}
+  .metric{flex:1;min-width:160px}
+  .metric .cap{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  .metric .amt{font-size:22px;font-weight:bold;font-variant-numeric:tabular-nums;margin-top:2px}
+  .pos{color:var(--red)} .neg{color:var(--green)}
+  .badge{display:inline-block;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:.4px}
+  .badge.disp{background:var(--green-bg);color:var(--green)}
+  .badge.bloq{background:#fef2f2;color:var(--red)}
+  .foot{font-size:11px;color:var(--muted);margin-top:16px;line-height:1.6}
+  .foot code{background:#f1f5f9;padding:1px 5px;border-radius:4px}
+  .warn{background:var(--amber-bg);border:1px solid #fde68a;color:#92400e;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:10px;display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Simulador Creditu &mdash; Financiamiento del Pie</h1>
+</header>
+
+<div class="wrap">
+<div class="grid">
+
+  <!-- ENTRADAS -->
+  <div class="card">
+    <h2>Datos de la operación</h2>
+    <div class="body">
+
+      <label>Nº Departamento</label>
+      <select id="depto"></select>
+      <div class="unitinfo" id="unitinfo"></div>
+
+      <div class="row2">
+        <div>
+          <label>Precio Lista (UF)</label>
+          <input id="lista" readonly>
+        </div>
+        <div>
+          <label>Precio Mínimo (UF)</label>
+          <input id="min" readonly>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div>
+          <label>Estacionamiento (UF)</label>
+          <input id="est" type="number" step="1" value="0">
+        </div>
+        <div>
+          <label>Bodega (UF)</label>
+          <input id="bod" type="number" step="1" value="0">
+        </div>
+      </div>
+
+      <label>Pie total (%)</label>
+      <input id="pie" type="number" step="1" value="20">
+      <div class="hint">El cliente aporta 10% fijo; Creditu financia el resto (pie − 10%).</div>
+      <div class="warn" id="pieWarn">El pie debe ser ≥ 10% (el cliente aporta 10%).</div>
+
+      <label>Plazo crédito Creditu (meses)</label>
+      <select id="plazoC">
+        <option value="12">12 meses (comisión 20%)</option>
+        <option value="24">24 meses (comisión 25%)</option>
+        <option value="36">36 meses (comisión 30%)</option>
+        <option value="48">48 meses (comisión 40%)</option>
+        <option value="60" selected>60 meses (comisión 45%)</option>
+      </select>
+
+      <div class="row2">
+        <div>
+          <label>Tasa hipotecario (% anual)</label>
+          <input id="tasa" type="number" step="0.1" value="4.5">
+        </div>
+        <div>
+          <label>Plazo hipotecario (años)</label>
+          <select id="plazoH">
+            <option value="20">20</option>
+            <option value="25" selected>25</option>
+            <option value="30">30</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Valor UF ($)</label>
+      <input id="uf" type="number" step="1" value="40700">
+
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div>
+    <div class="cols">
+      <div class="panel creditu">
+        <h3>Con Creditu</h3>
+        <div class="sub">Cliente 10% + Creditu financia el pie restante</div>
+        <div class="line"><span class="lbl">Monto financiado por Creditu</span><span class="val" id="o_monto"></span></div>
+        <div class="line"><span class="lbl">Comisión Creditu (según plazo)</span><span class="val" id="o_com"></span></div>
+        <div class="line"><span class="lbl">Descuento efectivo de lista</span><span class="val" id="o_dscto"></span></div>
+        <div class="line"><span class="lbl">Precio final</span><span class="val" id="o_pfinal"></span></div>
+        <div class="line"><span class="lbl">Pie en efectivo (cliente 10%)</span><span class="val" id="o_efectivo"></span></div>
+        <div class="big">
+          <div class="cap">Cuota mensual del pie (Creditu)</div>
+          <div class="amt" id="o_cuotapie"></div>
+        </div>
+        <div class="big">
+          <div class="cap">Dividendo hipotecario mensual</div>
+          <div class="amt" id="o_div"></div>
+        </div>
+        <div class="big" style="background:#7c3aed;color:#fff">
+          <div class="cap" style="color:#e9d5ff">Pago total mensual (dividendo + cuota pie)</div>
+          <div class="amt" id="o_total" style="color:#fff"></div>
+        </div>
+      </div>
+
+      <div class="panel trad">
+        <h3>Hipotecario tradicional</h3>
+        <div class="sub">Cliente aporta el 20% del pie en efectivo</div>
+        <div class="line"><span class="lbl">Precio (máx. descuento / mínimo)</span><span class="val" id="t_precio"></span></div>
+        <div class="line"><span class="lbl">Descuento aplicado</span><span class="val" id="t_dscto"></span></div>
+        <div class="line"><span class="lbl">Pie en efectivo (cliente 20%)</span><span class="val" id="t_efectivo"></span></div>
+        <div class="line"><span class="lbl">Monto a financiar (80%)</span><span class="val" id="t_fin"></span></div>
+        <div class="big">
+          <div class="cap">Dividendo hipotecario mensual</div>
+          <div class="amt" id="t_div"></div>
+        </div>
+        <div class="big" style="visibility:hidden">
+          <div class="cap">-</div><div class="amt">-</div>
+        </div>
+        <div class="big" style="background:#0f766e;color:#fff">
+          <div class="cap" style="color:#99f6e4">Pago total mensual</div>
+          <div class="amt" id="t_total" style="color:#fff"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="verdict">
+      <div class="top">
+        <div class="metric">
+          <div class="cap">Diferencia dividendo (Creditu − Tradicional)</div>
+          <div class="amt" id="v_divdiff"></div>
+        </div>
+        <div class="metric">
+          <div class="cap">Menos efectivo al inicio con Creditu</div>
+          <div class="amt neg" id="v_efectivo"></div>
+        </div>
+        <div class="metric">
+          <div class="cap">Diferencia pago total mensual</div>
+          <div class="amt" id="v_totaldiff"></div>
+        </div>
+      </div>
+      <div class="foot" id="resumen"></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+const UNITS = [{"prod": 310, "modelo": "O", "prog": "2D-2B", "mz": "-", "piso": 3, "m2": 82.1, "lista": 9650, "min": 7913, "estado": "Disponible"}, {"prod": 510, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 5, "m2": 102.14, "lista": 11600, "min": 9143, "estado": "Disponible"}, {"prod": 602, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 6, "m2": 41.93, "lista": 4800, "min": 4096, "estado": "Disponible"}, {"prod": 603, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 6, "m2": 70.47, "lista": 7950, "min": 6245, "estado": "Disponible"}, {"prod": 604, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 6, "m2": 68.4, "lista": 6600, "min": 5092, "estado": "Disponible"}, {"prod": 701, "modelo": "A", "prog": "3D-2B", "mz": "-", "piso": 7, "m2": 102.14, "lista": 12100, "min": 10264, "estado": "Bloqueado"}, {"prod": 702, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 7, "m2": 41.93, "lista": 4991, "min": 4184, "estado": "Bloqueado"}, {"prod": 704, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 7, "m2": 68.4, "lista": 6650, "min": 5202, "estado": "Bloqueado"}, {"prod": 706, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 7, "m2": 54.19, "lista": 4473, "min": 3773, "estado": "Disponible"}, {"prod": 707, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 7, "m2": 69.62, "lista": 6150, "min": 4920, "estado": "Bloqueado"}, {"prod": 808, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 8, "m2": 65.96, "lista": 5800, "min": 4571, "estado": "Disponible"}, {"prod": 810, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 8, "m2": 102.14, "lista": 11700, "min": 9440, "estado": "Disponible"}, {"prod": 903, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 9, "m2": 70.47, "lista": 8100, "min": 6447, "estado": "Disponible"}, {"prod": 904, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 9, "m2": 68.4, "lista": 6700, "min": 5256, "estado": "Disponible"}, {"prod": 905, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 9, "m2": 38.26, "lista": 3750, "min": 2935, "estado": "Disponible"}, {"prod": 908, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 9, "m2": 65.96, "lista": 5850, "min": 4595, "estado": "Disponible"}, {"prod": 909, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 9, "m2": 70.7, "lista": 7500, "min": 5866, "estado": "Disponible"}, {"prod": 1003, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 10, "m2": 70.47, "lista": 8100, "min": 6480, "estado": "Disponible"}, {"prod": 1004, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 10, "m2": 68.4, "lista": 6750, "min": 5284, "estado": "Disponible"}, {"prod": 1005, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 10, "m2": 38.26, "lista": 3750, "min": 2950, "estado": "Disponible"}, {"prod": 1008, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 10, "m2": 65.96, "lista": 5900, "min": 4619, "estado": "Disponible"}, {"prod": 1009, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 10, "m2": 70.7, "lista": 7500, "min": 5897, "estado": "Disponible"}, {"prod": 1102, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 11, "m2": 41.93, "lista": 4991, "min": 4272, "estado": "Disponible"}, {"prod": 1105, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 11, "m2": 38.26, "lista": 3750, "min": 2965, "estado": "Disponible"}, {"prod": 1107, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 11, "m2": 69.62, "lista": 6250, "min": 5023, "estado": "Disponible"}, {"prod": 1109, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 11, "m2": 70.7, "lista": 7550, "min": 5927, "estado": "Disponible"}, {"prod": 1110, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 11, "m2": 102.14, "lista": 11750, "min": 9588, "estado": "Disponible"}, {"prod": 1202, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 12, "m2": 41.93, "lista": 4991, "min": 4294, "estado": "Disponible"}, {"prod": 1203, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 12, "m2": 70.47, "lista": 8189, "min": 6547, "estado": "Disponible"}, {"prod": 1204, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 12, "m2": 68.4, "lista": 6800, "min": 5339, "estado": "Disponible"}, {"prod": 1205, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 12, "m2": 38.26, "lista": 3800, "min": 2981, "estado": "Disponible"}, {"prod": 1207, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 12, "m2": 69.62, "lista": 6250, "min": 5049, "estado": "Disponible"}, {"prod": 1208, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 12, "m2": 65.96, "lista": 5950, "min": 4666, "estado": "Disponible"}, {"prod": 1304, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 13, "m2": 68.4, "lista": 6800, "min": 5366, "estado": "Disponible"}, {"prod": 1305, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 13, "m2": 38.26, "lista": 3800, "min": 2996, "estado": "Disponible"}, {"prod": 1306, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 13, "m2": 54.19, "lista": 4700, "min": 3893, "estado": "Disponible"}, {"prod": 1307, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 13, "m2": 69.62, "lista": 6250, "min": 5075, "estado": "Disponible"}, {"prod": 1308, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 13, "m2": 65.96, "lista": 6000, "min": 4690, "estado": "Disponible"}, {"prod": 1309, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 13, "m2": 70.7, "lista": 7550, "min": 5988, "estado": "Disponible"}, {"prod": 1310, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 13, "m2": 102.14, "lista": 11800, "min": 9687, "estado": "Disponible"}, {"prod": 1402, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 14, "m2": 41.93, "lista": 4991, "min": 4338, "estado": "Disponible"}, {"prod": 1404, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 14, "m2": 68.4, "lista": 6800, "min": 5393, "estado": "Disponible"}, {"prod": 1405, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 14, "m2": 38.26, "lista": 3850, "min": 3011, "estado": "Disponible"}, {"prod": 1407, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 14, "m2": 69.62, "lista": 6250, "min": 5101, "estado": "Disponible"}, {"prod": 1408, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 14, "m2": 65.96, "lista": 6050, "min": 4714, "estado": "Disponible"}, {"prod": 1410, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 14, "m2": 102.14, "lista": 11800, "min": 9736, "estado": "Disponible"}, {"prod": 1501, "modelo": "A", "prog": "3D-2B", "mz": "-", "piso": 15, "m2": 102.14, "lista": 12250, "min": 10696, "estado": "Disponible"}, {"prod": 1503, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 15, "m2": 70.47, "lista": 8200, "min": 6648, "estado": "Disponible"}, {"prod": 1504, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 15, "m2": 68.4, "lista": 6800, "min": 5421, "estado": "Disponible"}, {"prod": 1505, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 15, "m2": 38.26, "lista": 3850, "min": 3026, "estado": "Disponible"}, {"prod": 1507, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 15, "m2": 69.62, "lista": 6250, "min": 5127, "estado": "Disponible"}, {"prod": 1508, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 15, "m2": 65.96, "lista": 6100, "min": 4738, "estado": "Disponible"}, {"prod": 1509, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 15, "m2": 70.7, "lista": 7550, "min": 6049, "estado": "Disponible"}, {"prod": 1510, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 15, "m2": 102.14, "lista": 11800, "min": 9786, "estado": "Disponible"}, {"prod": 1605, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 16, "m2": 38.26, "lista": 3825, "min": 3042, "estado": "Disponible"}, {"prod": 1608, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 16, "m2": 65.96, "lista": 6100, "min": 4762, "estado": "Disponible"}, {"prod": 1609, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 16, "m2": 70.7, "lista": 7550, "min": 6080, "estado": "Disponible"}, {"prod": 1610, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 16, "m2": 102.14, "lista": 11800, "min": 9835, "estado": "Disponible"}, {"prod": 1704, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 17, "m2": 68.4, "lista": 6750, "min": 5476, "estado": "Disponible"}, {"prod": 1706, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 17, "m2": 54.19, "lista": 4700, "min": 3972, "estado": "Disponible"}, {"prod": 1708, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 17, "m2": 65.96, "lista": 6100, "min": 4786, "estado": "Disponible"}, {"prod": 1709, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 17, "m2": 70.7, "lista": 7550, "min": 6111, "estado": "Disponible"}, {"prod": 1805, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 18, "m2": 38.26, "lista": 3775, "min": 3049, "estado": "Disponible"}, {"prod": 1806, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 18, "m2": 54.19, "lista": 4700, "min": 3962, "estado": "Disponible"}, {"prod": 1807, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 18, "m2": 69.62, "lista": 6200, "min": 5166, "estado": "Disponible"}, {"prod": 1808, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 18, "m2": 65.96, "lista": 6075, "min": 4774, "estado": "Disponible"}, {"prod": 1902, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 19, "m2": 41.93, "lista": 4991, "min": 4382, "estado": "Disponible"}, {"prod": 1903, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 19, "m2": 70.47, "lista": 8200, "min": 6682, "estado": "Disponible"}, {"prod": 1905, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 19, "m2": 38.26, "lista": 3775, "min": 3042, "estado": "Disponible"}, {"prod": 1906, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 19, "m2": 54.19, "lista": 4700, "min": 3952, "estado": "Disponible"}, {"prod": 1907, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 19, "m2": 69.62, "lista": 6200, "min": 5153, "estado": "Disponible"}, {"prod": 1908, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 19, "m2": 65.96, "lista": 6050, "min": 4762, "estado": "Disponible"}, {"prod": 1909, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 19, "m2": 70.7, "lista": 7500, "min": 6080, "estado": "Disponible"}, {"prod": 1910, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 19, "m2": 102.14, "lista": 11750, "min": 9835, "estado": "Disponible"}, {"prod": 2003, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 20, "m2": 70.47, "lista": 8150, "min": 6665, "estado": "Disponible"}, {"prod": 2006, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 20, "m2": 54.19, "lista": 4650, "min": 3942, "estado": "Disponible"}, {"prod": 2007, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 20, "m2": 69.62, "lista": 6200, "min": 5140, "estado": "Disponible"}, {"prod": 2008, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 20, "m2": 65.96, "lista": 6025, "min": 4750, "estado": "Disponible"}, {"prod": 2010, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 20, "m2": 102.14, "lista": 11750, "min": 9810, "estado": "Disponible"}, {"prod": 2103, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 21, "m2": 70.47, "lista": 8100, "min": 6648, "estado": "Disponible"}, {"prod": 2105, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 21, "m2": 38.26, "lista": 3725, "min": 3026, "estado": "Disponible"}, {"prod": 2106, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 21, "m2": 54.19, "lista": 4650, "min": 3932, "estado": "Disponible"}, {"prod": 2108, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 21, "m2": 65.96, "lista": 6000, "min": 4738, "estado": "Disponible"}, {"prod": 2206, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 22, "m2": 54.19, "lista": 4600, "min": 3922, "estado": "Disponible"}, {"prod": 2207, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 22, "m2": 69.62, "lista": 6200, "min": 5114, "estado": "Disponible"}, {"prod": 2208, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 22, "m2": 65.96, "lista": 5975, "min": 4726, "estado": "Disponible"}, {"prod": 2210, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 22, "m2": 102.14, "lista": 11700, "min": 9761, "estado": "Disponible"}, {"prod": 2301, "modelo": "A", "prog": "3D-2B", "mz": "-", "piso": 23, "m2": 102.14, "lista": 12150, "min": 10642, "estado": "Disponible"}, {"prod": 2302, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 23, "m2": 41.93, "lista": 4991, "min": 4338, "estado": "Disponible"}, {"prod": 2303, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 23, "m2": 70.47, "lista": 8050, "min": 6615, "estado": "Disponible"}, {"prod": 2304, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 23, "m2": 68.4, "lista": 6650, "min": 5393, "estado": "Disponible"}, {"prod": 2305, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 23, "m2": 38.26, "lista": 3725, "min": 3011, "estado": "Disponible"}, {"prod": 2306, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 23, "m2": 54.19, "lista": 4600, "min": 3912, "estado": "Disponible"}, {"prod": 2307, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 23, "m2": 69.62, "lista": 6150, "min": 5101, "estado": "Disponible"}, {"prod": 2308, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 23, "m2": 65.96, "lista": 5950, "min": 4714, "estado": "Disponible"}, {"prod": 2310, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 23, "m2": 102.14, "lista": 11700, "min": 9736, "estado": "Disponible"}, {"prod": 2403, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 24, "m2": 70.47, "lista": 8000, "min": 6598, "estado": "Disponible"}, {"prod": 2404, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 24, "m2": 68.4, "lista": 6650, "min": 5380, "estado": "Disponible"}, {"prod": 2406, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 24, "m2": 54.19, "lista": 4550, "min": 3902, "estado": "Disponible"}, {"prod": 2407, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 24, "m2": 69.62, "lista": 6150, "min": 5088, "estado": "Disponible"}, {"prod": 2408, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 24, "m2": 65.96, "lista": 5925, "min": 4702, "estado": "Disponible"}, {"prod": 2503, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 25, "m2": 70.47, "lista": 7950, "min": 6581, "estado": "Disponible"}, {"prod": 2504, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 25, "m2": 68.4, "lista": 6600, "min": 5366, "estado": "Disponible"}, {"prod": 2505, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 25, "m2": 38.26, "lista": 3725, "min": 2996, "estado": "Disponible"}, {"prod": 2507, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 25, "m2": 69.62, "lista": 6150, "min": 5075, "estado": "Disponible"}, {"prod": 2508, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 25, "m2": 65.96, "lista": 5900, "min": 4690, "estado": "Disponible"}, {"prod": 2602, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 26, "m2": 41.93, "lista": 4991, "min": 4305, "estado": "Disponible"}, {"prod": 2603, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 26, "m2": 70.47, "lista": 7950, "min": 6564, "estado": "Disponible"}, {"prod": 2604, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 26, "m2": 68.4, "lista": 6600, "min": 5352, "estado": "Disponible"}, {"prod": 2605, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 26, "m2": 38.26, "lista": 3725, "min": 2988, "estado": "Disponible"}, {"prod": 2606, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 26, "m2": 54.19, "lista": 4550, "min": 3883, "estado": "Disponible"}, {"prod": 2708, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 27, "m2": 65.96, "lista": 5850, "min": 4666, "estado": "Disponible"}, {"prod": 2807, "modelo": "M", "prog": "1D-1B", "mz": "-", "piso": 28, "m2": 49.96, "lista": 4639, "min": 3804, "estado": "Disponible"}, {"prod": 2901, "modelo": "A", "prog": "3D-2B", "mz": "-", "piso": 29, "m2": 102.14, "lista": 12100, "min": 10480, "estado": "Disponible"}, {"prod": 2906, "modelo": "L", "prog": "1D-1B", "mz": "-", "piso": 29, "m2": 42.33, "lista": 4400, "min": 3476, "estado": "Disponible"}, {"prod": 2907, "modelo": "M", "prog": "1D-1B", "mz": "-", "piso": 29, "m2": 49.96, "lista": 4627, "min": 3794, "estado": "Disponible"}, {"prod": 3006, "modelo": "L", "prog": "1D-1B", "mz": "-", "piso": 30, "m2": 42.33, "lista": 4159, "min": 3467, "estado": "Disponible"}, {"prod": 3007, "modelo": "M", "prog": "1D-1B", "mz": "-", "piso": 30, "m2": 49.96, "lista": 4615, "min": 3784, "estado": "Disponible"}, {"prod": 3010, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 30, "m2": 102.14, "lista": 11650, "min": 9563, "estado": "Disponible"}, {"prod": 3101, "modelo": "A", "prog": "3D-2B", "mz": "-", "piso": 31, "m2": 102.14, "lista": 12000, "min": 10345, "estado": "Disponible"}, {"prod": 3103, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 31, "m2": 70.47, "lista": 7950, "min": 6430, "estado": "Disponible"}, {"prod": 3106, "modelo": "L", "prog": "1D-1B", "mz": "-", "piso": 31, "m2": 42.33, "lista": 4350, "min": 3431, "estado": "Disponible"}, {"prod": 3107, "modelo": "M", "prog": "1D-1B", "mz": "-", "piso": 31, "m2": 49.96, "lista": 4568, "min": 3745, "estado": "Disponible"}, {"prod": 3108, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 31, "m2": 65.96, "lista": 5775, "min": 4583, "estado": "Disponible"}, {"prod": 3109, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 31, "m2": 70.7, "lista": 7450, "min": 5851, "estado": "Disponible"}, {"prod": 3110, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 31, "m2": 102.14, "lista": 11650, "min": 9464, "estado": "Disponible"}];
+const SEG_DESG = 0.00015;   // CHIP!I9
+const SEG_INC  = 0;         // CHIP!I10
+const COMISION = {12:0.20, 24:0.25, 36:0.30, 48:0.40, 60:0.45}; // Hoja1 A4:B8
+
+const $ = id => document.getElementById(id);
+
+// Excel PMT (fv=0, type=0) -> devolvemos el pago positivo (-PMT)
+function pay(rate, nper, pv){
+  if(rate === 0) return pv / nper;
+  const f = Math.pow(1+rate, nper);
+  return pv * rate * f / (f - 1);
+}
+const clp = v => isFinite(v) ? '$' + Math.round(v).toLocaleString('es-CL') : '—';
+const uf  = v => isFinite(v) ? v.toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1}) + ' UF' : '—';
+const pct = v => isFinite(v) ? (v*100).toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%' : '—';
+
+// Poblar selector
+const sel = $('depto');
+UNITS.forEach((u,i)=>{
+  const o = document.createElement('option');
+  o.value = i;
+  o.textContent = `${u.prod}  ·  ${u.prog||''} ${u.modelo?('· Mod '+u.modelo):''}`;
+  sel.appendChild(o);
+});
+
+function loadUnit(){
+  const u = UNITS[sel.value];
+  $('lista').value = u.lista;
+  $('min').value   = u.min;
+  const estBadge = (u.estado||'').toLowerCase().includes('bloq')
+      ? '<span class="badge bloq">Bloqueado</span>' : '<span class="badge disp">Disponible</span>';
+  $('unitinfo').innerHTML =
+    `Modelo <b>${u.modelo||'-'}</b> · Programa <b>${u.prog||'-'}</b> · Piso <b>${u.piso??'-'}</b> · `+
+    `<b>${u.m2??'-'}</b> m² · ${estBadge}`;
+  calc();
+}
+
+function calc(){
+  const B = parseFloat($('lista').value)||0;   // Precio lista
+  const C = parseFloat($('min').value)||0;      // Precio minimo
+  const E = parseFloat($('est').value)||0;      // Estacionamiento
+  const F = parseFloat($('bod').value)||0;      // Bodega
+  const H = (parseFloat($('pie').value)||0)/100;// Pie total
+  const I = 0.10;                               // Cliente fijo 10%
+  const L = parseInt($('plazoC').value);        // Plazo Creditu meses
+  const Q = (parseFloat($('tasa').value)||0)/100;// Tasa anual
+  const R = parseInt($('plazoH').value);        // Plazo hipotecario años
+  const UF = parseFloat($('uf').value)||0;
+
+  $('pieWarn').style.display = (H < I) ? 'block' : 'none';
+
+  const J = H - I;                     // fracción financiada por Creditu
+  const D = B>0 ? (B - C)/B : 0;       // descuento máximo de lista
+  const G = C + E + F;                 // TOTAL (base mínimo)
+  const K = J * G;                     // monto Creditu (UF)
+  const com = COMISION[L];             // factor comisión por plazo
+  const M = D - (K * com)/B;           // descuento efectivo
+  const N = L>0 ? K / L : 0;           // cuota pie UF
+  const O = N * UF;                    // cuota pie $
+  const P = B*(1-M) + E + F;           // precio final
+
+  const mRate = Math.pow(1+Q, 1/12) - 1;
+  const nper  = R*12;
+
+  // Creditu
+  const pvC = P*(1-H);
+  const S = (pay(mRate, nper, pvC) + pvC*SEG_DESG + SEG_INC*pvC) * UF;
+  const T = S + O;
+  // Tradicional
+  const pvT = G*(1-H);
+  const U = (pay(mRate, nper, pvT) + pvT*SEG_DESG + SEG_INC*pvT) * UF;
+
+  // Efectivo inicial (pie que pone el cliente)
+  const efClienteCreditu = I * G * UF;   // 10%
+  const efClienteTrad    = H * G * UF;   // 20%
+
+  // Creditu outputs
+  $('o_monto').textContent  = uf(K);
+  $('o_com').textContent    = pct(com);
+  $('o_dscto').textContent  = pct(M);
+  $('o_pfinal').textContent = uf(P);
+  $('o_efectivo').textContent = clp(efClienteCreditu);
+  $('o_cuotapie').textContent = clp(O);
+  $('o_div').textContent    = clp(S);
+  $('o_total').textContent  = clp(T);
+
+  // Tradicional outputs
+  $('t_precio').textContent = uf(G);
+  $('t_dscto').textContent  = pct(D);
+  $('t_efectivo').textContent = clp(efClienteTrad);
+  $('t_fin').textContent    = uf(pvT);
+  $('t_div').textContent    = clp(U);
+  $('t_total').textContent  = clp(U);
+
+  // Comparativo
+  const vDiv = S - U;
+  const vEf  = efClienteTrad - efClienteCreditu;
+  const vTot = T - U;
+  const dEl = $('v_divdiff'); dEl.textContent = (vDiv>=0?'+':'') + clp(vDiv).replace('$','$');
+  dEl.className = 'amt ' + (vDiv>0?'pos':'neg');
+  $('v_efectivo').textContent = clp(vEf);
+  const tEl = $('v_totaldiff'); tEl.textContent = (vTot>=0?'+':'') + clp(vTot);
+  tEl.className = 'amt ' + (vTot>0?'pos':'neg');
+
+  $('resumen').innerHTML =
+    `Con <b>Creditu</b> el cliente aporta <b>${clp(efClienteCreditu)}</b> de pie (10%) en vez de `+
+    `<b>${clp(efClienteTrad)}</b> (20%): <b>${clp(vEf)} menos de efectivo</b> al inicio. `+
+    `A cambio, el dividendo mensual es <b>${clp(Math.abs(vDiv))} ${vDiv>=0?'mayor':'menor'}</b> `+
+    `(precio final ${uf(P)} vs ${uf(G)}), más una cuota de pie de <b>${clp(O)}</b>/mes durante ${L} meses.`;
+}
+
+['est','bod','pie','plazoC','tasa','plazoH','uf'].forEach(id=>{
+  $(id).addEventListener('input', calc);
+  $(id).addEventListener('change', calc);
+});
+sel.addEventListener('change', loadUnit);
+loadUnit();
+</script>
+</body>
+</html>
