@@ -86,16 +86,8 @@
       <select id="depto"></select>
       <div class="unitinfo" id="unitinfo"></div>
 
-      <div class="row2">
-        <div>
-          <label>Precio Lista (UF)</label>
-          <input id="lista" readonly>
-        </div>
-        <div>
-          <label>Precio Mínimo (UF)</label>
-          <input id="min" readonly>
-        </div>
-      </div>
+      <label>Precio Lista (UF)</label>
+      <input id="lista" readonly>
 
       <div class="row2">
         <div>
@@ -115,11 +107,11 @@
 
       <label>Plazo crédito Creditu (meses)</label>
       <select id="plazoC">
-        <option value="12">12 meses (comisión 20%)</option>
-        <option value="24">24 meses (comisión 25%)</option>
-        <option value="36">36 meses (comisión 30%)</option>
-        <option value="48">48 meses (comisión 40%)</option>
-        <option value="60" selected>60 meses (comisión 45%)</option>
+        <option value="12">12 meses</option>
+        <option value="24">24 meses</option>
+        <option value="36">36 meses</option>
+        <option value="48">48 meses</option>
+        <option value="60" selected>60 meses</option>
       </select>
 
       <div class="row2">
@@ -150,7 +142,6 @@
         <h3>Con Creditu</h3>
         <div class="sub">Cliente 10% + Creditu financia el pie restante</div>
         <div class="line"><span class="lbl">Monto financiado por Creditu</span><span class="val" id="o_monto"></span></div>
-        <div class="line"><span class="lbl">Comisión Creditu (según plazo)</span><span class="val" id="o_com"></span></div>
         <div class="line"><span class="lbl">Descuento efectivo de lista</span><span class="val" id="o_dscto"></span></div>
         <div class="line"><span class="lbl">Precio final</span><span class="val" id="o_pfinal"></span></div>
         <div class="line"><span class="lbl">Pie en efectivo (cliente 10%)</span><span class="val" id="o_efectivo"></span></div>
@@ -171,7 +162,7 @@
       <div class="panel trad">
         <h3>Hipotecario tradicional</h3>
         <div class="sub">Cliente aporta el 20% del pie en efectivo</div>
-        <div class="line"><span class="lbl">Precio (máx. descuento / mínimo)</span><span class="val" id="t_precio"></span></div>
+        <div class="line"><span class="lbl">Precio con descuento máximo</span><span class="val" id="t_precio"></span></div>
         <div class="line"><span class="lbl">Descuento aplicado</span><span class="val" id="t_dscto"></span></div>
         <div class="line"><span class="lbl">Pie en efectivo (cliente 20%)</span><span class="val" id="t_efectivo"></span></div>
         <div class="line"><span class="lbl">Monto a financiar (80%)</span><span class="val" id="t_fin"></span></div>
@@ -241,7 +232,6 @@ UNITS.forEach((u,i)=>{
 function loadUnit(){
   const u = UNITS[sel.value];
   $('lista').value = u.lista;
-  $('min').value   = u.min;
   const estBadge = (u.estado||'').toLowerCase().includes('bloq')
       ? '<span class="badge bloq">Bloqueado</span>' : '<span class="badge disp">Disponible</span>';
   $('unitinfo').innerHTML =
@@ -252,7 +242,7 @@ function loadUnit(){
 
 function calc(){
   const B = parseFloat($('lista').value)||0;   // Precio lista
-  const C = parseFloat($('min').value)||0;      // Precio minimo
+  const C = parseFloat(UNITS[sel.value].min)||0;// Precio minimo (interno, no se muestra)
   const E = parseFloat($('est').value)||0;      // Estacionamiento
   const F = parseFloat($('bod').value)||0;      // Bodega
   const H = (parseFloat($('pie').value)||0)/100;// Pie total
@@ -291,7 +281,6 @@ function calc(){
 
   // Creditu outputs
   $('o_monto').textContent  = uf(K);
-  $('o_com').textContent    = pct(com);
   $('o_dscto').textContent  = pct(M);
   $('o_pfinal').textContent = uf(P);
   $('o_efectivo').textContent = clp(efClienteCreditu);
