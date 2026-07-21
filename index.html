@@ -105,7 +105,7 @@
         <option value="20" selected>20%</option>
         <option value="25">25%</option>
       </select>
-      <div class="hint">El financiamiento cubre un 10% fijo del pie; el cliente paga el resto (pie − 10%) al contado.</div>
+      <div class="hint">El financiamiento cubre un 10% fijo del pie; el resto (pie − 10%) se paga en cuotas antes de escriturar.</div>
 
       <label>Plazo del financiamiento (meses)</label>
       <select id="plazoC">
@@ -143,21 +143,17 @@
     <div class="cols">
       <div class="panel fin">
         <h3>Con financiamiento</h3>
-        <div class="sub">El financiamiento cubre 10% del pie; el resto se paga al contado</div>
+        <div class="sub">Menos pie antes de escriturar; el 10% financiado se suma al dividendo después</div>
         <div class="line"><span class="lbl">Monto financiado</span><span class="val" id="o_monto"></span></div>
         <div class="line"><span class="lbl">Descuento efectivo de lista</span><span class="val" id="o_dscto"></span></div>
-        <div class="line"><span class="lbl">Pie en efectivo (cliente)</span><span class="val" id="o_efectivo"></span></div>
+        <div class="line"><span class="lbl">Pie pendiente (cliente, en cuotas)</span><span class="val" id="o_efectivo"></span></div>
         <div class="big">
-          <div class="cap">Cuota mensual (pie)</div>
-          <div class="amt" id="o_cuotapie"></div>
-        </div>
-        <div class="big">
-          <div class="cap">Dividendo hipotecario mensual</div>
-          <div class="amt" id="o_div"></div>
+          <div class="cap">Cuota pre escrituración (pie)</div>
+          <div class="amt" id="o_cuotapre"></div>
         </div>
         <div class="big" style="background:#7c3aed;color:#fff">
-          <div class="cap" style="color:#e9d5ff">Pago total mensual</div>
-          <div class="amt" id="o_total" style="color:#fff"></div>
+          <div class="cap" style="color:#e9d5ff">Cuota post escrituración (dividendo + financiamiento)</div>
+          <div class="amt" id="o_cuotapost" style="color:#fff"></div>
         </div>
       </div>
 
@@ -168,16 +164,12 @@
         <div class="line"><span class="lbl">Descuento aplicado</span><span class="val" id="t_dscto"></span></div>
         <div class="line"><span class="lbl">Pie total (cuotas hasta escrituración)</span><span class="val" id="t_efectivo"></span></div>
         <div class="big">
-          <div class="cap">Cuota mensual (pie)</div>
-          <div class="amt" id="t_cuotapie"></div>
-        </div>
-        <div class="big">
-          <div class="cap">Dividendo hipotecario mensual</div>
-          <div class="amt" id="t_div"></div>
+          <div class="cap">Cuota pre escrituración (pie)</div>
+          <div class="amt" id="t_cuotapre"></div>
         </div>
         <div class="big" style="background:#0f766e;color:#fff">
-          <div class="cap" style="color:#99f6e4">Pago total mensual</div>
-          <div class="amt" id="t_total" style="color:#fff"></div>
+          <div class="cap" style="color:#99f6e4">Cuota post escrituración (dividendo hipotecario)</div>
+          <div class="amt" id="t_cuotapost" style="color:#fff"></div>
         </div>
       </div>
     </div>
@@ -185,16 +177,12 @@
     <div class="verdict">
       <div class="top">
         <div class="metric">
-          <div class="cap">Diferencia dividendo (con − sin financiamiento)</div>
-          <div class="amt" id="v_divdiff"></div>
+          <div class="cap">Diferencia cuota pre escrituración (con − sin)</div>
+          <div class="amt" id="v_prediff"></div>
         </div>
         <div class="metric">
-          <div class="cap">Menos efectivo al inicio (con financiamiento)</div>
-          <div class="amt neg" id="v_efectivo"></div>
-        </div>
-        <div class="metric">
-          <div class="cap">Diferencia pago total mensual</div>
-          <div class="amt" id="v_totaldiff"></div>
+          <div class="cap">Diferencia cuota post escrituración (con − sin)</div>
+          <div class="amt" id="v_postdiff"></div>
         </div>
       </div>
       <div class="foot" id="resumen"></div>
@@ -310,50 +298,48 @@ function calc(){
   const mRate = Math.pow(1+Q, 1/12) - 1;
   const nper  = R*12;
 
-  // Con financiamiento
+  // Con financiamiento: dividendo hipotecario (post escritura) sobre el mismo pie total (1-H)
   const pvC = P*(1-H);
   const S = (pay(mRate, nper, pvC) + pvC*SEG_DESG + SEG_INC*pvC) * UF;
-  const T = S + O;
-  const efClienteFin = (H-JFIN) * G * UF;
+  const pieClienteFin = (H-JFIN) * G * UF;   // pie que le queda al cliente (no financiado)
+  const cuotaPreFin  = pieClienteFin / meses; // cuota pre escritura: solo el pie no financiado
+  const cuotaPostFin = S + O;                 // cuota post escritura: dividendo + cuota financiamiento
 
   // Sin financiamiento
   const pvT = G*(1-H);
   const U = (pay(mRate, nper, pvT) + pvT*SEG_DESG + SEG_INC*pvT) * UF;
-  const efClienteSinFin = H * G * UF;
-  const cuotaSinFin = efClienteSinFin / meses;
-  const totalSinFin = cuotaSinFin + U;
+  const pieClienteSinFin = H * G * UF;         // pie completo (sin financiamiento)
+  const cuotaPreSinFin  = pieClienteSinFin / meses;
+  const cuotaPostSinFin = U;
 
   // Con financiamiento outputs
   $('o_monto').textContent  = uf(K);
   $('o_dscto').textContent  = pct(M);
-  $('o_efectivo').textContent = clp(efClienteFin);
-  $('o_cuotapie').textContent = clp(O);
-  $('o_div').textContent    = clp(S);
-  $('o_total').textContent  = clp(T);
+  $('o_efectivo').textContent = clp(pieClienteFin);
+  $('o_cuotapre').textContent  = clp(cuotaPreFin);
+  $('o_cuotapost').textContent = clp(cuotaPostFin);
 
   // Sin financiamiento outputs
   $('t_sub').textContent = `Pie en ${meses} cuotas iguales hasta escrituración (jul-2027)`;
   $('t_precio').textContent = uf(G);
   $('t_dscto').textContent  = pct(D);
-  $('t_efectivo').textContent = clp(efClienteSinFin);
-  $('t_cuotapie').textContent = clp(cuotaSinFin);
-  $('t_div').textContent    = clp(U);
-  $('t_total').textContent  = clp(totalSinFin);
+  $('t_efectivo').textContent = clp(pieClienteSinFin);
+  $('t_cuotapre').textContent  = clp(cuotaPreSinFin);
+  $('t_cuotapost').textContent = clp(cuotaPostSinFin);
 
   // Comparativo
-  const vDiv = S - U;
-  const vEf  = efClienteSinFin - efClienteFin;
-  const vTot = T - totalSinFin;
-  const dEl = $('v_divdiff'); dEl.textContent = (vDiv>=0?'+':'') + clp(vDiv);
-  dEl.className = 'amt ' + (vDiv>0?'pos':'neg');
-  $('v_efectivo').textContent = clp(vEf);
-  const tEl = $('v_totaldiff'); tEl.textContent = (vTot>=0?'+':'') + clp(vTot);
-  tEl.className = 'amt ' + (vTot>0?'pos':'neg');
+  const vPre  = cuotaPreFin - cuotaPreSinFin;   // negativo = con financiamiento paga menos antes de escriturar
+  const vPost = cuotaPostFin - cuotaPostSinFin; // positivo = con financiamiento paga más después de escriturar
+  const preEl = $('v_prediff'); preEl.textContent = (vPre>=0?'+':'') + clp(vPre);
+  preEl.className = 'amt ' + (vPre>0?'pos':'neg');
+  const postEl = $('v_postdiff'); postEl.textContent = (vPost>=0?'+':'') + clp(vPost);
+  postEl.className = 'amt ' + (vPost>0?'pos':'neg');
 
   $('resumen').innerHTML =
-    `Con <b>financiamiento</b> el cliente aporta <b>${clp(efClienteFin)}</b> al contado en vez de `+
-    `<b>${clp(efClienteSinFin)}</b> en ${meses} cuotas: <b>${clp(vEf)} menos de efectivo</b> al inicio. `+
-    `El pago mensual total con financiamiento es <b>${clp(Math.abs(vTot))} ${vTot>=0?'mayor':'menor'}</b> que sin financiamiento.`;
+    `Con <b>financiamiento</b>, antes de escriturar el cliente paga <b>${clp(cuotaPreFin)}</b>/mes en vez de `+
+    `<b>${clp(cuotaPreSinFin)}</b>/mes (${clp(Math.abs(vPre))} menos). A cambio, desde la escrituración paga `+
+    `<b>${clp(cuotaPostFin)}</b>/mes (dividendo + financiamiento) en vez de <b>${clp(cuotaPostSinFin)}</b>/mes `+
+    `(${clp(Math.abs(vPost))} más), durante los ${L} meses del financiamiento.`;
 }
 
 ['est','bod','pie','plazoC','tasa','plazoH','uf'].forEach(id=>{
