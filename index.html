@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simulador Creditu - Financiamiento del Pie</title>
+<title>Simulador de Financiamiento del Pie</title>
 <style>
   :root{
     --bg:#0f172a; --card:#ffffff; --ink:#0f172a; --muted:#64748b;
     --line:#e2e8f0; --brand:#2563eb; --brand-d:#1d4ed8;
     --green:#059669; --green-bg:#ecfdf5; --amber:#d97706; --amber-bg:#fffbeb;
-    --red:#dc2626; --creditu:#7c3aed; --creditu-bg:#f5f3ff;
-    --trad:#0f766e; --trad-bg:#f0fdfa;
+    --red:#dc2626; --fin:#7c3aed; --fin-bg:#f5f3ff;
+    --nofin:#0f766e; --nofin-bg:#f0fdfa;
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f1f5f9;color:var(--ink);
@@ -40,11 +40,11 @@
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
   @media(max-width:640px){.cols{grid-template-columns:1fr}}
   .panel{border-radius:12px;padding:18px;border:1px solid}
-  .panel.creditu{background:var(--creditu-bg);border-color:#ddd6fe}
-  .panel.trad{background:var(--trad-bg);border-color:#99f6e4}
+  .panel.fin{background:var(--fin-bg);border-color:#ddd6fe}
+  .panel.nofin{background:var(--nofin-bg);border-color:#99f6e4}
   .panel h3{margin:0 0 4px;font-size:15px}
-  .panel.creditu h3{color:var(--creditu)}
-  .panel.trad h3{color:var(--trad)}
+  .panel.fin h3{color:var(--fin)}
+  .panel.nofin h3{color:var(--nofin)}
   .panel .sub{font-size:12px;color:var(--muted);margin-bottom:14px}
   .line{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px dashed rgba(0,0,0,.08);font-size:13px}
   .line:last-child{border-bottom:none}
@@ -53,8 +53,8 @@
   .big{margin-top:12px;padding:14px;border-radius:10px;background:#fff;border:1px solid rgba(0,0,0,.06)}
   .big .cap{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
   .big .amt{font-size:26px;font-weight:bold;font-variant-numeric:tabular-nums;margin-top:2px}
-  .panel.creditu .big .amt{color:var(--creditu)}
-  .panel.trad .big .amt{color:var(--trad)}
+  .panel.fin .big .amt{color:var(--fin)}
+  .panel.nofin .big .amt{color:var(--nofin)}
   .verdict{margin-top:18px;border-radius:12px;padding:18px 20px;border:1px solid var(--line);background:#fff}
   .verdict .top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px}
   .metric{flex:1;min-width:160px}
@@ -65,13 +65,11 @@
   .badge.disp{background:var(--green-bg);color:var(--green)}
   .badge.bloq{background:#fef2f2;color:var(--red)}
   .foot{font-size:11px;color:var(--muted);margin-top:16px;line-height:1.6}
-  .foot code{background:#f1f5f9;padding:1px 5px;border-radius:4px}
-  .warn{background:var(--amber-bg);border:1px solid #fde68a;color:#92400e;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:10px;display:none}
 </style>
 </head>
 <body>
 <header>
-  <h1>Simulador Creditu &mdash; Financiamiento del Pie</h1>
+  <h1>Simulador de Financiamiento del Pie</h1>
 </header>
 
 <div class="wrap">
@@ -91,21 +89,25 @@
 
       <div class="row2">
         <div>
-          <label>Estacionamiento (UF)</label>
-          <input id="est" type="number" step="1" value="0">
+          <label>Estacionamiento</label>
+          <select id="est"></select>
         </div>
         <div>
-          <label>Bodega (UF)</label>
-          <input id="bod" type="number" step="1" value="0">
+          <label>Bodega</label>
+          <select id="bod"></select>
         </div>
       </div>
 
       <label>Pie total (%)</label>
-      <input id="pie" type="number" step="1" value="20">
-      <div class="hint">El cliente aporta 10% fijo; Creditu financia el resto (pie − 10%).</div>
-      <div class="warn" id="pieWarn">El pie debe ser ≥ 10% (el cliente aporta 10%).</div>
+      <select id="pie">
+        <option value="10">10%</option>
+        <option value="15">15%</option>
+        <option value="20" selected>20%</option>
+        <option value="25">25%</option>
+      </select>
+      <div class="hint">El financiamiento cubre un 10% fijo del pie; el cliente paga el resto (pie − 10%) al contado.</div>
 
-      <label>Plazo crédito Creditu (meses)</label>
+      <label>Plazo del financiamiento (meses)</label>
       <select id="plazoC">
         <option value="12">12 meses</option>
         <option value="24">24 meses</option>
@@ -131,6 +133,7 @@
 
       <label>Valor UF ($)</label>
       <input id="uf" type="number" step="1" value="40700">
+      <div class="hint" id="ufHint">Actualizando UF del día...</div>
 
     </div>
   </div>
@@ -138,15 +141,14 @@
   <!-- RESULTADOS -->
   <div>
     <div class="cols">
-      <div class="panel creditu">
-        <h3>Con Creditu</h3>
-        <div class="sub">Cliente 10% + Creditu financia el pie restante</div>
-        <div class="line"><span class="lbl">Monto financiado por Creditu</span><span class="val" id="o_monto"></span></div>
+      <div class="panel fin">
+        <h3>Con financiamiento</h3>
+        <div class="sub">El financiamiento cubre 10% del pie; el resto se paga al contado</div>
+        <div class="line"><span class="lbl">Monto financiado</span><span class="val" id="o_monto"></span></div>
         <div class="line"><span class="lbl">Descuento efectivo de lista</span><span class="val" id="o_dscto"></span></div>
-        <div class="line"><span class="lbl">Precio final</span><span class="val" id="o_pfinal"></span></div>
-        <div class="line"><span class="lbl">Pie en efectivo (cliente 10%)</span><span class="val" id="o_efectivo"></span></div>
+        <div class="line"><span class="lbl">Pie en efectivo (cliente)</span><span class="val" id="o_efectivo"></span></div>
         <div class="big">
-          <div class="cap">Cuota mensual del pie (Creditu)</div>
+          <div class="cap">Cuota mensual (pie)</div>
           <div class="amt" id="o_cuotapie"></div>
         </div>
         <div class="big">
@@ -154,24 +156,24 @@
           <div class="amt" id="o_div"></div>
         </div>
         <div class="big" style="background:#7c3aed;color:#fff">
-          <div class="cap" style="color:#e9d5ff">Pago total mensual (dividendo + cuota pie)</div>
+          <div class="cap" style="color:#e9d5ff">Pago total mensual</div>
           <div class="amt" id="o_total" style="color:#fff"></div>
         </div>
       </div>
 
-      <div class="panel trad">
-        <h3>Hipotecario tradicional</h3>
-        <div class="sub">Cliente aporta el 20% del pie en efectivo</div>
+      <div class="panel nofin">
+        <h3>Sin financiamiento</h3>
+        <div class="sub" id="t_sub">Pie en cuotas iguales hasta escrituración</div>
         <div class="line"><span class="lbl">Precio con descuento máximo</span><span class="val" id="t_precio"></span></div>
         <div class="line"><span class="lbl">Descuento aplicado</span><span class="val" id="t_dscto"></span></div>
-        <div class="line"><span class="lbl">Pie en efectivo (cliente 20%)</span><span class="val" id="t_efectivo"></span></div>
-        <div class="line"><span class="lbl">Monto a financiar (80%)</span><span class="val" id="t_fin"></span></div>
+        <div class="line"><span class="lbl">Pie total (cuotas hasta escrituración)</span><span class="val" id="t_efectivo"></span></div>
+        <div class="big">
+          <div class="cap">Cuota mensual (pie)</div>
+          <div class="amt" id="t_cuotapie"></div>
+        </div>
         <div class="big">
           <div class="cap">Dividendo hipotecario mensual</div>
           <div class="amt" id="t_div"></div>
-        </div>
-        <div class="big" style="visibility:hidden">
-          <div class="cap">-</div><div class="amt">-</div>
         </div>
         <div class="big" style="background:#0f766e;color:#fff">
           <div class="cap" style="color:#99f6e4">Pago total mensual</div>
@@ -183,11 +185,11 @@
     <div class="verdict">
       <div class="top">
         <div class="metric">
-          <div class="cap">Diferencia dividendo (Creditu − Tradicional)</div>
+          <div class="cap">Diferencia dividendo (con − sin financiamiento)</div>
           <div class="amt" id="v_divdiff"></div>
         </div>
         <div class="metric">
-          <div class="cap">Menos efectivo al inicio con Creditu</div>
+          <div class="cap">Menos efectivo al inicio (con financiamiento)</div>
           <div class="amt neg" id="v_efectivo"></div>
         </div>
         <div class="metric">
@@ -204,23 +206,32 @@
 
 <script>
 const UNITS = [{"prod": 310, "modelo": "O", "prog": "2D-2B", "mz": "-", "piso": 3, "m2": 82.1, "lista": 9650, "min": 7913, "estado": "Disponible"}, {"prod": 510, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 5, "m2": 102.14, "lista": 11600, "min": 9143, "estado": "Disponible"}, {"prod": 602, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 6, "m2": 41.93, "lista": 4800, "min": 4096, "estado": "Disponible"}, {"prod": 603, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 6, "m2": 70.47, "lista": 7950, "min": 6245, "estado": "Disponible"}, {"prod": 604, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 6, "m2": 68.4, "lista": 6600, "min": 5092, "estado": "Disponible"}, {"prod": 701, "modelo": "A", "prog": "3D-2B", "mz": "-", "piso": 7, "m2": 102.14, "lista": 12100, "min": 10264, "estado": "Bloqueado"}, {"prod": 702, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 7, "m2": 41.93, "lista": 4991, "min": 4184, "estado": "Bloqueado"}, {"prod": 704, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 7, "m2": 68.4, "lista": 6650, "min": 5202, "estado": "Bloqueado"}, {"prod": 706, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 7, "m2": 54.19, "lista": 4473, "min": 3773, "estado": "Disponible"}, {"prod": 707, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 7, "m2": 69.62, "lista": 6150, "min": 4920, "estado": "Bloqueado"}, {"prod": 808, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 8, "m2": 65.96, "lista": 5800, "min": 4571, "estado": "Disponible"}, {"prod": 810, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 8, "m2": 102.14, "lista": 11700, "min": 9440, "estado": "Disponible"}, {"prod": 903, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 9, "m2": 70.47, "lista": 8100, "min": 6447, "estado": "Disponible"}, {"prod": 904, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 9, "m2": 68.4, "lista": 6700, "min": 5256, "estado": "Disponible"}, {"prod": 905, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 9, "m2": 38.26, "lista": 3750, "min": 2935, "estado": "Disponible"}, {"prod": 908, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 9, "m2": 65.96, "lista": 5850, "min": 4595, "estado": "Disponible"}, {"prod": 909, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 9, "m2": 70.7, "lista": 7500, "min": 5866, "estado": "Disponible"}, {"prod": 1003, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 10, "m2": 70.47, "lista": 8100, "min": 6480, "estado": "Disponible"}, {"prod": 1004, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 10, "m2": 68.4, "lista": 6750, "min": 5284, "estado": "Disponible"}, {"prod": 1005, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 10, "m2": 38.26, "lista": 3750, "min": 2950, "estado": "Disponible"}, {"prod": 1008, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 10, "m2": 65.96, "lista": 5900, "min": 4619, "estado": "Disponible"}, {"prod": 1009, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 10, "m2": 70.7, "lista": 7500, "min": 5897, "estado": "Disponible"}, {"prod": 1102, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 11, "m2": 41.93, "lista": 4991, "min": 4272, "estado": "Disponible"}, {"prod": 1105, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 11, "m2": 38.26, "lista": 3750, "min": 2965, "estado": "Disponible"}, {"prod": 1107, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 11, "m2": 69.62, "lista": 6250, "min": 5023, "estado": "Disponible"}, {"prod": 1109, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 11, "m2": 70.7, "lista": 7550, "min": 5927, "estado": "Disponible"}, {"prod": 1110, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 11, "m2": 102.14, "lista": 11750, "min": 9588, "estado": "Disponible"}, {"prod": 1202, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 12, "m2": 41.93, "lista": 4991, "min": 4294, "estado": "Disponible"}, {"prod": 1203, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 12, "m2": 70.47, "lista": 8189, "min": 6547, "estado": "Disponible"}, {"prod": 1204, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 12, "m2": 68.4, "lista": 6800, "min": 5339, "estado": "Disponible"}, {"prod": 1205, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 12, "m2": 38.26, "lista": 3800, "min": 2981, "estado": "Disponible"}, {"prod": 1207, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 12, "m2": 69.62, "lista": 6250, "min": 5049, "estado": "Disponible"}, {"prod": 1208, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 12, "m2": 65.96, "lista": 5950, "min": 4666, "estado": "Disponible"}, {"prod": 1304, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 13, "m2": 68.4, "lista": 6800, "min": 5366, "estado": "Disponible"}, {"prod": 1305, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 13, "m2": 38.26, "lista": 3800, "min": 2996, "estado": "Disponible"}, {"prod": 1306, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 13, "m2": 54.19, "lista": 4700, "min": 3893, "estado": "Disponible"}, {"prod": 1307, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 13, "m2": 69.62, "lista": 6250, "min": 5075, "estado": "Disponible"}, {"prod": 1308, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 13, "m2": 65.96, "lista": 6000, "min": 4690, "estado": "Disponible"}, {"prod": 1309, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 13, "m2": 70.7, "lista": 7550, "min": 5988, "estado": "Disponible"}, {"prod": 1310, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 13, "m2": 102.14, "lista": 11800, "min": 9687, "estado": "Disponible"}, {"prod": 1402, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 14, "m2": 41.93, "lista": 4991, "min": 4338, "estado": "Disponible"}, {"prod": 1404, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 14, "m2": 68.4, "lista": 6800, "min": 5393, "estado": "Disponible"}, {"prod": 1405, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 14, "m2": 38.26, "lista": 3850, "min": 3011, "estado": "Disponible"}, {"prod": 1407, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 14, "m2": 69.62, "lista": 6250, "min": 5101, "estado": "Disponible"}, {"prod": 1408, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 14, "m2": 65.96, "lista": 6050, "min": 4714, "estado": "Disponible"}, {"prod": 1410, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 14, "m2": 102.14, "lista": 11800, "min": 9736, "estado": "Disponible"}, {"prod": 1501, "modelo": "A", "prog": "3D-2B", "mz": "-", "piso": 15, "m2": 102.14, "lista": 12250, "min": 10696, "estado": "Disponible"}, {"prod": 1503, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 15, "m2": 70.47, "lista": 8200, "min": 6648, "estado": "Disponible"}, {"prod": 1504, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 15, "m2": 68.4, "lista": 6800, "min": 5421, "estado": "Disponible"}, {"prod": 1505, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 15, "m2": 38.26, "lista": 3850, "min": 3026, "estado": "Disponible"}, {"prod": 1507, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 15, "m2": 69.62, "lista": 6250, "min": 5127, "estado": "Disponible"}, {"prod": 1508, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 15, "m2": 65.96, "lista": 6100, "min": 4738, "estado": "Disponible"}, {"prod": 1509, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 15, "m2": 70.7, "lista": 7550, "min": 6049, "estado": "Disponible"}, {"prod": 1510, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 15, "m2": 102.14, "lista": 11800, "min": 9786, "estado": "Disponible"}, {"prod": 1605, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 16, "m2": 38.26, "lista": 3825, "min": 3042, "estado": "Disponible"}, {"prod": 1608, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 16, "m2": 65.96, "lista": 6100, "min": 4762, "estado": "Disponible"}, {"prod": 1609, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 16, "m2": 70.7, "lista": 7550, "min": 6080, "estado": "Disponible"}, {"prod": 1610, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 16, "m2": 102.14, "lista": 11800, "min": 9835, "estado": "Disponible"}, {"prod": 1704, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 17, "m2": 68.4, "lista": 6750, "min": 5476, "estado": "Disponible"}, {"prod": 1706, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 17, "m2": 54.19, "lista": 4700, "min": 3972, "estado": "Disponible"}, {"prod": 1708, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 17, "m2": 65.96, "lista": 6100, "min": 4786, "estado": "Disponible"}, {"prod": 1709, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 17, "m2": 70.7, "lista": 7550, "min": 6111, "estado": "Disponible"}, {"prod": 1805, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 18, "m2": 38.26, "lista": 3775, "min": 3049, "estado": "Disponible"}, {"prod": 1806, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 18, "m2": 54.19, "lista": 4700, "min": 3962, "estado": "Disponible"}, {"prod": 1807, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 18, "m2": 69.62, "lista": 6200, "min": 5166, "estado": "Disponible"}, {"prod": 1808, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 18, "m2": 65.96, "lista": 6075, "min": 4774, "estado": "Disponible"}, {"prod": 1902, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 19, "m2": 41.93, "lista": 4991, "min": 4382, "estado": "Disponible"}, {"prod": 1903, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 19, "m2": 70.47, "lista": 8200, "min": 6682, "estado": "Disponible"}, {"prod": 1905, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 19, "m2": 38.26, "lista": 3775, "min": 3042, "estado": "Disponible"}, {"prod": 1906, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 19, "m2": 54.19, "lista": 4700, "min": 3952, "estado": "Disponible"}, {"prod": 1907, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 19, "m2": 69.62, "lista": 6200, "min": 5153, "estado": "Disponible"}, {"prod": 1908, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 19, "m2": 65.96, "lista": 6050, "min": 4762, "estado": "Disponible"}, {"prod": 1909, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 19, "m2": 70.7, "lista": 7500, "min": 6080, "estado": "Disponible"}, {"prod": 1910, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 19, "m2": 102.14, "lista": 11750, "min": 9835, "estado": "Disponible"}, {"prod": 2003, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 20, "m2": 70.47, "lista": 8150, "min": 6665, "estado": "Disponible"}, {"prod": 2006, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 20, "m2": 54.19, "lista": 4650, "min": 3942, "estado": "Disponible"}, {"prod": 2007, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 20, "m2": 69.62, "lista": 6200, "min": 5140, "estado": "Disponible"}, {"prod": 2008, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 20, "m2": 65.96, "lista": 6025, "min": 4750, "estado": "Disponible"}, {"prod": 2010, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 20, "m2": 102.14, "lista": 11750, "min": 9810, "estado": "Disponible"}, {"prod": 2103, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 21, "m2": 70.47, "lista": 8100, "min": 6648, "estado": "Disponible"}, {"prod": 2105, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 21, "m2": 38.26, "lista": 3725, "min": 3026, "estado": "Disponible"}, {"prod": 2106, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 21, "m2": 54.19, "lista": 4650, "min": 3932, "estado": "Disponible"}, {"prod": 2108, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 21, "m2": 65.96, "lista": 6000, "min": 4738, "estado": "Disponible"}, {"prod": 2206, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 22, "m2": 54.19, "lista": 4600, "min": 3922, "estado": "Disponible"}, {"prod": 2207, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 22, "m2": 69.62, "lista": 6200, "min": 5114, "estado": "Disponible"}, {"prod": 2208, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 22, "m2": 65.96, "lista": 5975, "min": 4726, "estado": "Disponible"}, {"prod": 2210, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 22, "m2": 102.14, "lista": 11700, "min": 9761, "estado": "Disponible"}, {"prod": 2301, "modelo": "A", "prog": "3D-2B", "mz": "-", "piso": 23, "m2": 102.14, "lista": 12150, "min": 10642, "estado": "Disponible"}, {"prod": 2302, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 23, "m2": 41.93, "lista": 4991, "min": 4338, "estado": "Disponible"}, {"prod": 2303, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 23, "m2": 70.47, "lista": 8050, "min": 6615, "estado": "Disponible"}, {"prod": 2304, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 23, "m2": 68.4, "lista": 6650, "min": 5393, "estado": "Disponible"}, {"prod": 2305, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 23, "m2": 38.26, "lista": 3725, "min": 3011, "estado": "Disponible"}, {"prod": 2306, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 23, "m2": 54.19, "lista": 4600, "min": 3912, "estado": "Disponible"}, {"prod": 2307, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 23, "m2": 69.62, "lista": 6150, "min": 5101, "estado": "Disponible"}, {"prod": 2308, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 23, "m2": 65.96, "lista": 5950, "min": 4714, "estado": "Disponible"}, {"prod": 2310, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 23, "m2": 102.14, "lista": 11700, "min": 9736, "estado": "Disponible"}, {"prod": 2403, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 24, "m2": 70.47, "lista": 8000, "min": 6598, "estado": "Disponible"}, {"prod": 2404, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 24, "m2": 68.4, "lista": 6650, "min": 5380, "estado": "Disponible"}, {"prod": 2406, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 24, "m2": 54.19, "lista": 4550, "min": 3902, "estado": "Disponible"}, {"prod": 2407, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 24, "m2": 69.62, "lista": 6150, "min": 5088, "estado": "Disponible"}, {"prod": 2408, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 24, "m2": 65.96, "lista": 5925, "min": 4702, "estado": "Disponible"}, {"prod": 2503, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 25, "m2": 70.47, "lista": 7950, "min": 6581, "estado": "Disponible"}, {"prod": 2504, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 25, "m2": 68.4, "lista": 6600, "min": 5366, "estado": "Disponible"}, {"prod": 2505, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 25, "m2": 38.26, "lista": 3725, "min": 2996, "estado": "Disponible"}, {"prod": 2507, "modelo": "G", "prog": "2D-2B", "mz": "-", "piso": 25, "m2": 69.62, "lista": 6150, "min": 5075, "estado": "Disponible"}, {"prod": 2508, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 25, "m2": 65.96, "lista": 5900, "min": 4690, "estado": "Disponible"}, {"prod": 2602, "modelo": "B", "prog": "1D-1B", "mz": "-", "piso": 26, "m2": 41.93, "lista": 4991, "min": 4305, "estado": "Disponible"}, {"prod": 2603, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 26, "m2": 70.47, "lista": 7950, "min": 6564, "estado": "Disponible"}, {"prod": 2604, "modelo": "D", "prog": "2D-1B", "mz": "-", "piso": 26, "m2": 68.4, "lista": 6600, "min": 5352, "estado": "Disponible"}, {"prod": 2605, "modelo": "E", "prog": "1D-1B", "mz": "-", "piso": 26, "m2": 38.26, "lista": 3725, "min": 2988, "estado": "Disponible"}, {"prod": 2606, "modelo": "F", "prog": "2D-1B", "mz": "-", "piso": 26, "m2": 54.19, "lista": 4550, "min": 3883, "estado": "Disponible"}, {"prod": 2708, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 27, "m2": 65.96, "lista": 5850, "min": 4666, "estado": "Disponible"}, {"prod": 2807, "modelo": "M", "prog": "1D-1B", "mz": "-", "piso": 28, "m2": 49.96, "lista": 4639, "min": 3804, "estado": "Disponible"}, {"prod": 2901, "modelo": "A", "prog": "3D-2B", "mz": "-", "piso": 29, "m2": 102.14, "lista": 12100, "min": 10480, "estado": "Disponible"}, {"prod": 2906, "modelo": "L", "prog": "1D-1B", "mz": "-", "piso": 29, "m2": 42.33, "lista": 4400, "min": 3476, "estado": "Disponible"}, {"prod": 2907, "modelo": "M", "prog": "1D-1B", "mz": "-", "piso": 29, "m2": 49.96, "lista": 4627, "min": 3794, "estado": "Disponible"}, {"prod": 3006, "modelo": "L", "prog": "1D-1B", "mz": "-", "piso": 30, "m2": 42.33, "lista": 4159, "min": 3467, "estado": "Disponible"}, {"prod": 3007, "modelo": "M", "prog": "1D-1B", "mz": "-", "piso": 30, "m2": 49.96, "lista": 4615, "min": 3784, "estado": "Disponible"}, {"prod": 3010, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 30, "m2": 102.14, "lista": 11650, "min": 9563, "estado": "Disponible"}, {"prod": 3101, "modelo": "A", "prog": "3D-2B", "mz": "-", "piso": 31, "m2": 102.14, "lista": 12000, "min": 10345, "estado": "Disponible"}, {"prod": 3103, "modelo": "C", "prog": "2D-2B", "mz": "-", "piso": 31, "m2": 70.47, "lista": 7950, "min": 6430, "estado": "Disponible"}, {"prod": 3106, "modelo": "L", "prog": "1D-1B", "mz": "-", "piso": 31, "m2": 42.33, "lista": 4350, "min": 3431, "estado": "Disponible"}, {"prod": 3107, "modelo": "M", "prog": "1D-1B", "mz": "-", "piso": 31, "m2": 49.96, "lista": 4568, "min": 3745, "estado": "Disponible"}, {"prod": 3108, "modelo": "H", "prog": "2D-2B", "mz": "-", "piso": 31, "m2": 65.96, "lista": 5775, "min": 4583, "estado": "Disponible"}, {"prod": 3109, "modelo": "I", "prog": "2D-2B", "mz": "-", "piso": 31, "m2": 70.7, "lista": 7450, "min": 5851, "estado": "Disponible"}, {"prod": 3110, "modelo": "J", "prog": "3D-2B", "mz": "-", "piso": 31, "m2": 102.14, "lista": 11650, "min": 9464, "estado": "Disponible"}];
-const SEG_DESG = 0.00015;   // CHIP!I9
-const SEG_INC  = 0;         // CHIP!I10
-const COMISION = {12:0.20, 24:0.25, 36:0.30, 48:0.40, 60:0.45}; // Hoja1 A4:B8
+const BODEGAS = [{"nombre": "BB-001", "precio": 75}, {"nombre": "BB-003", "precio": 100}, {"nombre": "BB-005", "precio": 105}, {"nombre": "BB-006", "precio": 90}, {"nombre": "BB-007", "precio": 90}, {"nombre": "BB-010", "precio": 105}, {"nombre": "BB-011", "precio": 75}, {"nombre": "BB-013", "precio": 95}, {"nombre": "BB-014", "precio": 100}, {"nombre": "BB-015", "precio": 100}, {"nombre": "BB-016", "precio": 95}, {"nombre": "BB-017", "precio": 95}, {"nombre": "BB-020", "precio": 100}, {"nombre": "BB-021", "precio": 115}, {"nombre": "BB-022", "precio": 80}, {"nombre": "BB-023", "precio": 90}, {"nombre": "BB-024", "precio": 105}, {"nombre": "BB-025", "precio": 95}, {"nombre": "BB-026", "precio": 95}, {"nombre": "BB-027", "precio": 110}, {"nombre": "BB-028", "precio": 110}, {"nombre": "BB-029", "precio": 75}, {"nombre": "BB-038", "precio": 95}, {"nombre": "BB-039", "precio": 115}, {"nombre": "BB-040", "precio": 90}, {"nombre": "BB-046", "precio": 90}, {"nombre": "BB-049", "precio": 95}, {"nombre": "BB-050", "precio": 105}, {"nombre": "BB-053", "precio": 95}, {"nombre": "BB-054", "precio": 135}, {"nombre": "BB-056", "precio": 90}, {"nombre": "BB-058", "precio": 95}, {"nombre": "BB-061", "precio": 135}, {"nombre": "BB-067", "precio": 110}, {"nombre": "BB-069", "precio": 125}, {"nombre": "BB-075", "precio": 115}, {"nombre": "BB-080", "precio": 115}, {"nombre": "BB-083", "precio": 75}, {"nombre": "BB-085", "precio": 125}, {"nombre": "BB-090", "precio": 105}, {"nombre": "BB-093", "precio": 100}, {"nombre": "BB-094", "precio": 100}, {"nombre": "BB-116", "precio": 75}, {"nombre": "BB-120", "precio": 100}, {"nombre": "BB-121", "precio": 130}, {"nombre": "BB-122", "precio": 115}, {"nombre": "BB-129", "precio": 90}, {"nombre": "BB-132", "precio": 95}, {"nombre": "BB-148", "precio": 105}, {"nombre": "BB-150", "precio": 115}, {"nombre": "BB-153", "precio": 75}, {"nombre": "BB-155", "precio": 95}, {"nombre": "BB-159", "precio": 100}, {"nombre": "BB-160", "precio": 135}, {"nombre": "BB-162", "precio": 90}, {"nombre": "BB-163", "precio": 100}, {"nombre": "BB-164", "precio": 100}, {"nombre": "BB-165", "precio": 100}, {"nombre": "BB-166", "precio": 70}, {"nombre": "BB-167", "precio": 70}, {"nombre": "BB-170", "precio": 130}, {"nombre": "BB-171", "precio": 85}, {"nombre": "BB-172", "precio": 85}, {"nombre": "BB-173", "precio": 100}, {"nombre": "BB-175", "precio": 90}, {"nombre": "BB-178", "precio": 110}, {"nombre": "BB-179", "precio": 115}, {"nombre": "BB-180", "precio": 115}, {"nombre": "BB-181", "precio": 120}, {"nombre": "BB-182", "precio": 105}, {"nombre": "BB-183", "precio": 105}, {"nombre": "BB-188", "precio": 110}, {"nombre": "BB-189", "precio": 120}, {"nombre": "BB-193", "precio": 120}, {"nombre": "BB-197", "precio": 115}, {"nombre": "BB-199", "precio": 100}, {"nombre": "BB-200", "precio": 75}, {"nombre": "BB-201", "precio": 95}, {"nombre": "BB-203", "precio": 95}, {"nombre": "BB-204", "precio": 100}, {"nombre": "BB-205", "precio": 110}, {"nombre": "BB-207", "precio": 95}, {"nombre": "BB-208", "precio": 135}, {"nombre": "BB-210", "precio": 90}, {"nombre": "BB-211", "precio": 95}, {"nombre": "BB-212", "precio": 95}, {"nombre": "BB-213", "precio": 95}, {"nombre": "BB-214", "precio": 85}, {"nombre": "BB-215", "precio": 85}, {"nombre": "BB-216", "precio": 100}, {"nombre": "BB-217", "precio": 95}, {"nombre": "BB-218", "precio": 90}, {"nombre": "BB-219", "precio": 115}, {"nombre": "BB-220", "precio": 135}, {"nombre": "BB-221", "precio": 110}, {"nombre": "BB-222", "precio": 115}, {"nombre": "BB-223", "precio": 110}, {"nombre": "BB-224", "precio": 120}, {"nombre": "BB-225", "precio": 105}, {"nombre": "BB-226", "precio": 100}, {"nombre": "BB-228", "precio": 95}, {"nombre": "BB-230", "precio": 105}];
+const ESTAC = [{"nombre": "EE-001", "precio": 450}, {"nombre": "EE-004", "precio": 450}, {"nombre": "EE-005", "precio": 450}, {"nombre": "EE-006", "precio": 450}, {"nombre": "EE-014", "precio": 450}, {"nombre": "EE-015", "precio": 450}, {"nombre": "EE-017", "precio": 450}, {"nombre": "EE-018", "precio": 450}, {"nombre": "EE-019", "precio": 450}, {"nombre": "EE-020", "precio": 450}, {"nombre": "EE-021", "precio": 450}, {"nombre": "EE-022", "precio": 450}, {"nombre": "EE-027", "precio": 425}, {"nombre": "EE-028", "precio": 425}, {"nombre": "EE-029", "precio": 425}, {"nombre": "EE-031", "precio": 400}, {"nombre": "EE-032", "precio": 400}, {"nombre": "EE-033", "precio": 400}, {"nombre": "EE-034", "precio": 400}, {"nombre": "EE-054", "precio": 440}, {"nombre": "EE-055", "precio": 410}, {"nombre": "EE-056", "precio": 450}, {"nombre": "EE-059", "precio": 450}, {"nombre": "EE-060", "precio": 450}, {"nombre": "EE-065", "precio": 440}, {"nombre": "EE-066", "precio": 440}, {"nombre": "EE-067", "precio": 440}, {"nombre": "EE-071", "precio": 440}, {"nombre": "EE-072", "precio": 440}, {"nombre": "EE-080", "precio": 440}, {"nombre": "EE-083", "precio": 440}, {"nombre": "EE-088", "precio": 415}, {"nombre": "EE-089", "precio": 415}, {"nombre": "EE-090", "precio": 415}, {"nombre": "EE-093", "precio": 390}, {"nombre": "EE-094", "precio": 390}, {"nombre": "EE-095", "precio": 390}, {"nombre": "EE-096", "precio": 390}, {"nombre": "EE-097", "precio": 390}, {"nombre": "EE-098", "precio": 390}, {"nombre": "EE-099", "precio": 490}, {"nombre": "EE-101", "precio": 440}, {"nombre": "EE-118", "precio": 430}, {"nombre": "EE-119", "precio": 380}, {"nombre": "EE-126", "precio": 430}, {"nombre": "EE-127", "precio": 430}, {"nombre": "EE-139", "precio": 430}, {"nombre": "EE-140", "precio": 405}, {"nombre": "EE-141", "precio": 405}, {"nombre": "EE-142", "precio": 405}, {"nombre": "EE-143", "precio": 405}, {"nombre": "EE-144", "precio": 405}, {"nombre": "EE-145", "precio": 405}, {"nombre": "EE-146", "precio": 430}, {"nombre": "EE-147", "precio": 455}, {"nombre": "EE-148", "precio": 455}, {"nombre": "EE-149", "precio": 380}, {"nombre": "EE-150", "precio": 380}, {"nombre": "EE-151", "precio": 380}, {"nombre": "EE-152", "precio": 380}, {"nombre": "EE-153", "precio": 380}, {"nombre": "EE-154", "precio": 355}, {"nombre": "EE-171", "precio": 430}, {"nombre": "EE-181", "precio": 420}, {"nombre": "EE-182", "precio": 420}, {"nombre": "EE-183", "precio": 420}, {"nombre": "EE-187", "precio": 420}, {"nombre": "EE-188", "precio": 420}, {"nombre": "EE-190", "precio": 420}, {"nombre": "EE-194", "precio": 420}, {"nombre": "EE-197", "precio": 395}, {"nombre": "EE-198", "precio": 395}, {"nombre": "EE-199", "precio": 395}, {"nombre": "EE-200", "precio": 395}, {"nombre": "EE-201", "precio": 395}, {"nombre": "EE-205", "precio": 370}, {"nombre": "EE-206", "precio": 370}, {"nombre": "EE-207", "precio": 370}, {"nombre": "EE-208", "precio": 370}, {"nombre": "EE-215", "precio": 420}, {"nombre": "EE-216", "precio": 420}, {"nombre": "EE-224", "precio": 420}, {"nombre": "EE-225", "precio": 420}, {"nombre": "EE-226", "precio": 420}, {"nombre": "EE-227", "precio": 410}, {"nombre": "EE-228", "precio": 360}, {"nombre": "EE-229", "precio": 420}, {"nombre": "EE-235", "precio": 420}, {"nombre": "EE-236", "precio": 410}, {"nombre": "EE-237", "precio": 410}, {"nombre": "EE-238", "precio": 410}, {"nombre": "EE-239", "precio": 410}, {"nombre": "EE-240", "precio": 410}, {"nombre": "EE-241", "precio": 410}, {"nombre": "EE-242", "precio": 410}, {"nombre": "EE-243", "precio": 325}, {"nombre": "EE-244", "precio": 325}, {"nombre": "EE-245", "precio": 375}, {"nombre": "EE-246", "precio": 375}, {"nombre": "EE-247", "precio": 375}, {"nombre": "EE-248", "precio": 375}, {"nombre": "EE-249", "precio": 325}, {"nombre": "EE-250", "precio": 325}, {"nombre": "EE-252", "precio": 425}, {"nombre": "EE-254", "precio": 325}, {"nombre": "EE-255", "precio": 325}, {"nombre": "EE-256", "precio": 325}, {"nombre": "EE-257", "precio": 325}, {"nombre": "EE-258", "precio": 410}, {"nombre": "EE-262", "precio": 410}, {"nombre": "EE-270", "precio": 460}, {"nombre": "EE-271", "precio": 385}, {"nombre": "EE-273", "precio": 385}, {"nombre": "EE-274", "precio": 385}, {"nombre": "EE-275", "precio": 460}, {"nombre": "EE-276", "precio": 410}, {"nombre": "EE-277", "precio": 410}, {"nombre": "EE-278", "precio": 410}, {"nombre": "EE-281", "precio": 410}, {"nombre": "EE-283", "precio": 410}];
+const SEG_DESG = 0.00015;
+const SEG_INC  = 0;
+const COMISION = {12:0.20, 24:0.25, 36:0.30, 48:0.40, 60:0.45};
+const ESCRITURA = new Date(2027, 6, 1); // 1 julio 2027
 
 const $ = id => document.getElementById(id);
 
-// Excel PMT (fv=0, type=0) -> devolvemos el pago positivo (-PMT)
 function pay(rate, nper, pv){
   if(rate === 0) return pv / nper;
   const f = Math.pow(1+rate, nper);
   return pv * rate * f / (f - 1);
 }
-const clp = v => isFinite(v) ? '$' + Math.round(v).toLocaleString('es-CL') : '—';
+const clp = v => isFinite(v) ? (v<0?'-':'') + '$' + Math.round(Math.abs(v)).toLocaleString('es-CL') : '—';
 const uf  = v => isFinite(v) ? v.toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1}) + ' UF' : '—';
 const pct = v => isFinite(v) ? (v*100).toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%' : '—';
 
-// Poblar selector
+function mesesHastaEscritura(){
+  const hoy = new Date();
+  let m = (ESCRITURA.getFullYear()-hoy.getFullYear())*12 + (ESCRITURA.getMonth()-hoy.getMonth());
+  if(hoy.getDate() > ESCRITURA.getDate()) m -= 1;
+  return Math.max(1, m);
+}
+
+// Poblar selector de deptos
 const sel = $('depto');
 UNITS.forEach((u,i)=>{
   const o = document.createElement('option');
@@ -228,6 +239,40 @@ UNITS.forEach((u,i)=>{
   o.textContent = `${u.prod}`;
   sel.appendChild(o);
 });
+
+// Poblar selectores de estacionamiento y bodega (solo disponibles)
+function fillSecundario(selectEl, list, none){
+  const optNone = document.createElement('option');
+  optNone.value = '0';
+  optNone.textContent = none;
+  selectEl.appendChild(optNone);
+  list.forEach(x=>{
+    const o = document.createElement('option');
+    o.value = x.precio;
+    o.textContent = `${x.nombre} · ${x.precio} UF`;
+    selectEl.appendChild(o);
+  });
+}
+fillSecundario($('est'), ESTAC, 'Sin estacionamiento');
+fillSecundario($('bod'), BODEGAS, 'Sin bodega');
+
+// UF automática (mindicador.cl)
+async function fetchUF(){
+  try{
+    const res = await fetch('https://mindicador.cl/api/uf');
+    const data = await res.json();
+    const valor = data && data.serie && data.serie[0] && data.serie[0].valor;
+    if(valor){
+      $('uf').value = Math.round(valor*100)/100;
+      $('ufHint').textContent = 'UF actualizada automáticamente hoy (mindicador.cl).';
+      calc();
+    } else {
+      throw new Error('sin valor');
+    }
+  }catch(e){
+    $('ufHint').textContent = 'No se pudo obtener la UF automáticamente. Verifica/edita el valor manualmente.';
+  }
+}
 
 function loadUnit(){
   const u = UNITS[sel.value];
@@ -241,76 +286,74 @@ function loadUnit(){
 }
 
 function calc(){
-  const B = parseFloat($('lista').value)||0;   // Precio lista
-  const C = parseFloat(UNITS[sel.value].min)||0;// Precio minimo (interno, no se muestra)
-  const E = parseFloat($('est').value)||0;      // Estacionamiento
-  const F = parseFloat($('bod').value)||0;      // Bodega
-  const H = (parseFloat($('pie').value)||0)/100;// Pie total
-  const I = 0.10;                               // Cliente fijo 10%
-  const L = parseInt($('plazoC').value);        // Plazo Creditu meses
+  const B = parseFloat($('lista').value)||0;    // Precio lista
+  const C = parseFloat(UNITS[sel.value].min)||0; // Precio minimo (interno, no se muestra)
+  const E = parseFloat($('est').value)||0;       // Estacionamiento
+  const F = parseFloat($('bod').value)||0;       // Bodega
+  const H = (parseFloat($('pie').value)||0)/100; // Pie total elegido
+  const JFIN = Math.min(0.10, H);                // Financiamiento: fijo 10% (tope)
+  const L = parseInt($('plazoC').value);         // Plazo financiamiento meses
   const Q = (parseFloat($('tasa').value)||0)/100;// Tasa anual
-  const R = parseInt($('plazoH').value);        // Plazo hipotecario años
+  const R = parseInt($('plazoH').value);         // Plazo hipotecario años
   const UF = parseFloat($('uf').value)||0;
+  const meses = mesesHastaEscritura();
 
-  $('pieWarn').style.display = (H < I) ? 'block' : 'none';
-
-  const J = H - I;                     // fracción financiada por Creditu
   const D = B>0 ? (B - C)/B : 0;       // descuento máximo de lista
   const G = C + E + F;                 // TOTAL (base mínimo)
-  const K = J * G;                     // monto Creditu (UF)
+  const K = JFIN * G;                  // monto financiado (UF)
   const com = COMISION[L];             // factor comisión por plazo
   const M = D - (K * com)/B;           // descuento efectivo
-  const N = L>0 ? K / L : 0;           // cuota pie UF
-  const O = N * UF;                    // cuota pie $
-  const P = B*(1-M) + E + F;           // precio final
+  const N = L>0 ? K / L : 0;           // cuota financiamiento (UF)
+  const O = N * UF;                    // cuota financiamiento ($)
+  const P = B*(1-M) + E + F;           // precio final (interno)
 
   const mRate = Math.pow(1+Q, 1/12) - 1;
   const nper  = R*12;
 
-  // Creditu
+  // Con financiamiento
   const pvC = P*(1-H);
   const S = (pay(mRate, nper, pvC) + pvC*SEG_DESG + SEG_INC*pvC) * UF;
   const T = S + O;
-  // Tradicional
+  const efClienteFin = (H-JFIN) * G * UF;
+
+  // Sin financiamiento
   const pvT = G*(1-H);
   const U = (pay(mRate, nper, pvT) + pvT*SEG_DESG + SEG_INC*pvT) * UF;
+  const efClienteSinFin = H * G * UF;
+  const cuotaSinFin = efClienteSinFin / meses;
+  const totalSinFin = cuotaSinFin + U;
 
-  // Efectivo inicial (pie que pone el cliente)
-  const efClienteCreditu = I * G * UF;   // 10%
-  const efClienteTrad    = H * G * UF;   // 20%
-
-  // Creditu outputs
+  // Con financiamiento outputs
   $('o_monto').textContent  = uf(K);
   $('o_dscto').textContent  = pct(M);
-  $('o_pfinal').textContent = uf(P);
-  $('o_efectivo').textContent = clp(efClienteCreditu);
+  $('o_efectivo').textContent = clp(efClienteFin);
   $('o_cuotapie').textContent = clp(O);
   $('o_div').textContent    = clp(S);
   $('o_total').textContent  = clp(T);
 
-  // Tradicional outputs
+  // Sin financiamiento outputs
+  $('t_sub').textContent = `Pie en ${meses} cuotas iguales hasta escrituración (jul-2027)`;
   $('t_precio').textContent = uf(G);
   $('t_dscto').textContent  = pct(D);
-  $('t_efectivo').textContent = clp(efClienteTrad);
-  $('t_fin').textContent    = uf(pvT);
+  $('t_efectivo').textContent = clp(efClienteSinFin);
+  $('t_cuotapie').textContent = clp(cuotaSinFin);
   $('t_div').textContent    = clp(U);
-  $('t_total').textContent  = clp(U);
+  $('t_total').textContent  = clp(totalSinFin);
 
   // Comparativo
   const vDiv = S - U;
-  const vEf  = efClienteTrad - efClienteCreditu;
-  const vTot = T - U;
-  const dEl = $('v_divdiff'); dEl.textContent = (vDiv>=0?'+':'') + clp(vDiv).replace('$','$');
+  const vEf  = efClienteSinFin - efClienteFin;
+  const vTot = T - totalSinFin;
+  const dEl = $('v_divdiff'); dEl.textContent = (vDiv>=0?'+':'') + clp(vDiv);
   dEl.className = 'amt ' + (vDiv>0?'pos':'neg');
   $('v_efectivo').textContent = clp(vEf);
   const tEl = $('v_totaldiff'); tEl.textContent = (vTot>=0?'+':'') + clp(vTot);
   tEl.className = 'amt ' + (vTot>0?'pos':'neg');
 
   $('resumen').innerHTML =
-    `Con <b>Creditu</b> el cliente aporta <b>${clp(efClienteCreditu)}</b> de pie (10%) en vez de `+
-    `<b>${clp(efClienteTrad)}</b> (20%): <b>${clp(vEf)} menos de efectivo</b> al inicio. `+
-    `A cambio, el dividendo mensual es <b>${clp(Math.abs(vDiv))} ${vDiv>=0?'mayor':'menor'}</b> `+
-    `(precio final ${uf(P)} vs ${uf(G)}), más una cuota de pie de <b>${clp(O)}</b>/mes durante ${L} meses.`;
+    `Con <b>financiamiento</b> el cliente aporta <b>${clp(efClienteFin)}</b> al contado en vez de `+
+    `<b>${clp(efClienteSinFin)}</b> en ${meses} cuotas: <b>${clp(vEf)} menos de efectivo</b> al inicio. `+
+    `El pago mensual total con financiamiento es <b>${clp(Math.abs(vTot))} ${vTot>=0?'mayor':'menor'}</b> que sin financiamiento.`;
 }
 
 ['est','bod','pie','plazoC','tasa','plazoH','uf'].forEach(id=>{
@@ -319,6 +362,7 @@ function calc(){
 });
 sel.addEventListener('change', loadUnit);
 loadUnit();
+fetchUF();
 </script>
 </body>
 </html>
