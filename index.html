@@ -79,7 +79,7 @@
 
   <!-- ENTRADAS -->
   <div class="card">
-    <h2>Datos de la operación</h2>
+    <h2>Simulador</h2>
     <div class="body">
 
       <label>Nº Departamento</label>
@@ -225,7 +225,7 @@ const sel = $('depto');
 UNITS.forEach((u,i)=>{
   const o = document.createElement('option');
   o.value = i;
-  o.textContent = `${u.prod}  ·  ${u.prog||''} ${u.modelo?('· Mod '+u.modelo):''}`;
+  o.textContent = `${u.prod}`;
   sel.appendChild(o);
 });
 
