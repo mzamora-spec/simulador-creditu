@@ -144,32 +144,45 @@
       <div class="panel fin">
         <h3>Con financiamiento</h3>
         <div class="sub">Menos pie antes de escriturar; el 10% financiado se suma al dividendo después</div>
-        <div class="line"><span class="lbl">Monto financiado</span><span class="val" id="o_monto"></span></div>
-        <div class="line"><span class="lbl">Descuento efectivo de lista</span><span class="val" id="o_dscto"></span></div>
-        <div class="line"><span class="lbl">Pie pendiente (cliente, en cuotas)</span><span class="val" id="o_efectivo"></span></div>
+        <div class="line"><span class="lbl">Precio Lista</span><span class="val" id="o_precio"></span></div>
+        <div class="line"><span class="lbl">Descuento</span><span class="val" id="o_dscto"></span></div>
+        <div class="line"><span class="lbl">Estacionamiento + Bodega</span><span class="val" id="o_estbod"></span></div>
+        <div class="line"><span class="lbl">Valor Total</span><span class="val" id="o_valortotal"></span></div>
+        <div class="line"><span class="lbl">Pie pre escrituración</span><span class="val" id="o_piepre"></span></div>
+        <div class="line"><span class="lbl">Pie post escrituración</span><span class="val" id="o_piepost"></span></div>
         <div class="big">
-          <div class="cap">Cuota pre escrituración (pie)</div>
+          <div class="cap">Cuota mensual pre escrituración (pie)</div>
           <div class="amt" id="o_cuotapre"></div>
         </div>
+        <div class="line"><span class="lbl">Cuota mensual dividendo del hip.</span><span class="val" id="o_cuotahip"></span></div>
+        <div class="line"><span class="lbl" id="o_cuotafin_lbl">Cuota mensual financiamiento</span><span class="val" id="o_cuotafin"></span></div>
         <div class="big" style="background:#7c3aed;color:#fff">
-          <div class="cap" style="color:#e9d5ff">Cuota post escrituración (dividendo + financiamiento)</div>
-          <div class="amt" id="o_cuotapost" style="color:#fff"></div>
+          <div class="cap" style="color:#e9d5ff" id="o_fase1_lbl">Total mensual (primeros años)</div>
+          <div class="amt" id="o_fase1" style="color:#fff"></div>
+        </div>
+        <div class="big">
+          <div class="cap" id="o_fase2_lbl">Total mensual (años restantes)</div>
+          <div class="amt" id="o_fase2"></div>
         </div>
       </div>
 
       <div class="panel nofin">
         <h3>Sin financiamiento</h3>
         <div class="sub" id="t_sub">Pie en cuotas iguales hasta escrituración</div>
-        <div class="line"><span class="lbl">Precio con descuento máximo</span><span class="val" id="t_precio"></span></div>
-        <div class="line"><span class="lbl">Descuento aplicado</span><span class="val" id="t_dscto"></span></div>
-        <div class="line"><span class="lbl">Pie total (cuotas hasta escrituración)</span><span class="val" id="t_efectivo"></span></div>
+        <div class="line"><span class="lbl">Precio Lista</span><span class="val" id="t_precio"></span></div>
+        <div class="line"><span class="lbl">Descuento</span><span class="val" id="t_dscto"></span></div>
+        <div class="line"><span class="lbl">Estacionamiento + Bodega</span><span class="val" id="t_estbod"></span></div>
+        <div class="line"><span class="lbl">Valor Total</span><span class="val" id="t_valortotal"></span></div>
+        <div class="line"><span class="lbl">Pie pre escrituración</span><span class="val" id="t_piepre"></span></div>
+        <div class="line"><span class="lbl">Pie post escrituración</span><span class="val" id="t_piepost"></span></div>
         <div class="big">
-          <div class="cap">Cuota pre escrituración (pie)</div>
+          <div class="cap">Cuota mensual pre escrituración (pie)</div>
           <div class="amt" id="t_cuotapre"></div>
         </div>
+        <div class="line"><span class="lbl">Cuota mensual dividendo del hip.</span><span class="val" id="t_cuotahip"></span></div>
         <div class="big" style="background:#0f766e;color:#fff">
-          <div class="cap" style="color:#99f6e4">Cuota post escrituración (dividendo hipotecario)</div>
-          <div class="amt" id="t_cuotapost" style="color:#fff"></div>
+          <div class="cap" style="color:#99f6e4">Total mensual (post escrituración)</div>
+          <div class="amt" id="t_fase1" style="color:#fff"></div>
         </div>
       </div>
     </div>
@@ -181,7 +194,7 @@
           <div class="amt" id="v_prediff"></div>
         </div>
         <div class="metric">
-          <div class="cap">Diferencia cuota post escrituración (con − sin)</div>
+          <div class="cap">Diferencia total mensual post escrituración (con − sin)</div>
           <div class="amt" id="v_postdiff"></div>
         </div>
       </div>
@@ -297,39 +310,55 @@ function calc(){
 
   const mRate = Math.pow(1+Q, 1/12) - 1;
   const nper  = R*12;
+  const anosFin = L/12;                    // años del financiamiento (12/24/36/48/60 -> 1..5)
+  const mesesResto = R*12 - L;             // meses restantes de hipotecario tras acabar el financiamiento
+  const anosResto = mesesResto/12;
 
   // Con financiamiento: dividendo hipotecario (post escritura) sobre el mismo pie total (1-H)
   const pvC = P*(1-H);
   const S = (pay(mRate, nper, pvC) + pvC*SEG_DESG + SEG_INC*pvC) * UF;
-  const pieClienteFin = (H-JFIN) * G * UF;   // pie que le queda al cliente (no financiado)
-  const cuotaPreFin  = pieClienteFin / meses; // cuota pre escritura: solo el pie no financiado
-  const cuotaPostFin = S + O;                 // cuota post escritura: dividendo + cuota financiamiento
+  const pieClienteFinUF = (H-JFIN) * G;      // pie que le queda al cliente, no financiado (UF)
+  const cuotaPreFin  = (pieClienteFinUF*UF) / meses; // cuota pre escritura: solo el pie no financiado
+  const fase1Fin = S + O;                    // total mensual mientras dura el financiamiento (hip + financiamiento)
+  const fase2Fin = S;                        // total mensual una vez pagado el financiamiento (solo hip)
 
   // Sin financiamiento
   const pvT = G*(1-H);
   const U = (pay(mRate, nper, pvT) + pvT*SEG_DESG + SEG_INC*pvT) * UF;
-  const pieClienteSinFin = H * G * UF;         // pie completo (sin financiamiento)
-  const cuotaPreSinFin  = pieClienteSinFin / meses;
-  const cuotaPostSinFin = U;
+  const pieClienteSinFinUF = H * G;            // pie completo (sin financiamiento, UF)
+  const cuotaPreSinFin  = (pieClienteSinFinUF*UF) / meses;
 
   // Con financiamiento outputs
-  $('o_monto').textContent  = uf(K);
-  $('o_dscto').textContent  = pct(M);
-  $('o_efectivo').textContent = clp(pieClienteFin);
-  $('o_cuotapre').textContent  = clp(cuotaPreFin);
-  $('o_cuotapost').textContent = clp(cuotaPostFin);
+  $('o_precio').textContent = uf(B);
+  $('o_dscto').textContent  = `${uf(B*M)} (${pct(M)})`;
+  $('o_estbod').textContent = uf(E+F);
+  $('o_valortotal').textContent = uf(P);
+  $('o_piepre').textContent  = uf(pieClienteFinUF);
+  $('o_piepost').textContent = uf(K);
+  $('o_cuotapre').textContent = clp(cuotaPreFin);
+  $('o_cuotahip').textContent = clp(S);
+  $('o_cuotafin_lbl').textContent = `Cuota mensual financiamiento (${L} cuotas)`;
+  $('o_cuotafin').textContent = clp(O);
+  $('o_fase1_lbl').textContent = `Total mensual (primeros ${anosFin} ${anosFin==1?'año':'años'})`;
+  $('o_fase1').textContent = clp(fase1Fin);
+  $('o_fase2_lbl').textContent = `Total mensual (${anosResto} ${anosResto==1?'año':'años'} restantes)`;
+  $('o_fase2').textContent = clp(fase2Fin);
 
   // Sin financiamiento outputs
   $('t_sub').textContent = `Pie en ${meses} cuotas iguales hasta escrituración (jul-2027)`;
-  $('t_precio').textContent = uf(G);
-  $('t_dscto').textContent  = pct(D);
-  $('t_efectivo').textContent = clp(pieClienteSinFin);
-  $('t_cuotapre').textContent  = clp(cuotaPreSinFin);
-  $('t_cuotapost').textContent = clp(cuotaPostSinFin);
+  $('t_precio').textContent = uf(B);
+  $('t_dscto').textContent  = `${uf(B*D)} (${pct(D)})`;
+  $('t_estbod').textContent = uf(E+F);
+  $('t_valortotal').textContent = uf(G);
+  $('t_piepre').textContent  = uf(pieClienteSinFinUF);
+  $('t_piepost').textContent = uf(0);
+  $('t_cuotapre').textContent = clp(cuotaPreSinFin);
+  $('t_cuotahip').textContent = clp(U);
+  $('t_fase1').textContent = clp(U);
 
   // Comparativo
   const vPre  = cuotaPreFin - cuotaPreSinFin;   // negativo = con financiamiento paga menos antes de escriturar
-  const vPost = cuotaPostFin - cuotaPostSinFin; // positivo = con financiamiento paga más después de escriturar
+  const vPost = fase1Fin - U;                   // positivo = con financiamiento paga más durante el financiamiento
   const preEl = $('v_prediff'); preEl.textContent = (vPre>=0?'+':'') + clp(vPre);
   preEl.className = 'amt ' + (vPre>0?'pos':'neg');
   const postEl = $('v_postdiff'); postEl.textContent = (vPost>=0?'+':'') + clp(vPost);
@@ -337,9 +366,10 @@ function calc(){
 
   $('resumen').innerHTML =
     `Con <b>financiamiento</b>, antes de escriturar el cliente paga <b>${clp(cuotaPreFin)}</b>/mes en vez de `+
-    `<b>${clp(cuotaPreSinFin)}</b>/mes (${clp(Math.abs(vPre))} menos). A cambio, desde la escrituración paga `+
-    `<b>${clp(cuotaPostFin)}</b>/mes (dividendo + financiamiento) en vez de <b>${clp(cuotaPostSinFin)}</b>/mes `+
-    `(${clp(Math.abs(vPost))} más), durante los ${L} meses del financiamiento.`;
+    `<b>${clp(cuotaPreSinFin)}</b>/mes (${clp(Math.abs(vPre))} menos). Desde la escrituración y durante `+
+    `${anosFin} ${anosFin==1?'año':'años'} paga <b>${clp(fase1Fin)}</b>/mes (dividendo + financiamiento) en vez de `+
+    `<b>${clp(U)}</b>/mes (${clp(Math.abs(vPost))} más); luego, los ${anosResto} ${anosResto==1?'año':'años'} `+
+    `restantes del hipotecario paga solo <b>${clp(fase2Fin)}</b>/mes.`;
 }
 
 ['est','bod','pie','plazoC','tasa','plazoH','uf'].forEach(id=>{
