@@ -131,10 +131,6 @@
         </div>
       </div>
 
-      <label>Valor UF ($)</label>
-      <input id="uf" type="number" step="1" value="40700">
-      <div class="hint" id="ufHint">Actualizando UF del día...</div>
-
     </div>
   </div>
 
@@ -168,7 +164,7 @@
 
       <div class="panel nofin">
         <h3>Sin financiamiento</h3>
-        <div class="sub" id="t_sub">Pie en cuotas iguales hasta escrituración</div>
+        <div class="sub">Pie en 12 cuotas iguales, pre escrituración</div>
         <div class="line"><span class="lbl">Precio Lista</span><span class="val" id="t_precio"></span></div>
         <div class="line"><span class="lbl">Descuento</span><span class="val" id="t_dscto"></span></div>
         <div class="line"><span class="lbl">Estacionamiento + Bodega</span><span class="val" id="t_estbod"></span></div>
@@ -212,7 +208,7 @@ const ESTAC = [{"nombre": "EE-001", "precio": 450}, {"nombre": "EE-004", "precio
 const SEG_DESG = 0.00015;
 const SEG_INC  = 0;
 const COMISION = {12:0.20, 24:0.25, 36:0.30, 48:0.40, 60:0.45};
-const ESCRITURA = new Date(2027, 6, 1); // 1 julio 2027
+const MESES_PRE_ESCRITURA = 12; // el pie pre escrituración siempre se paga en 12 cuotas fijas
 
 const $ = id => document.getElementById(id);
 
@@ -221,16 +217,8 @@ function pay(rate, nper, pv){
   const f = Math.pow(1+rate, nper);
   return pv * rate * f / (f - 1);
 }
-const clp = v => isFinite(v) ? (v<0?'-':'') + '$' + Math.round(Math.abs(v)).toLocaleString('es-CL') : '—';
 const uf  = v => isFinite(v) ? v.toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1}) + ' UF' : '—';
 const pct = v => isFinite(v) ? (v*100).toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%' : '—';
-
-function mesesHastaEscritura(){
-  const hoy = new Date();
-  let m = (ESCRITURA.getFullYear()-hoy.getFullYear())*12 + (ESCRITURA.getMonth()-hoy.getMonth());
-  if(hoy.getDate() > ESCRITURA.getDate()) m -= 1;
-  return Math.max(1, m);
-}
 
 // Poblar selector de deptos
 const sel = $('depto');
@@ -257,24 +245,6 @@ function fillSecundario(selectEl, list, none){
 fillSecundario($('est'), ESTAC, 'Sin estacionamiento');
 fillSecundario($('bod'), BODEGAS, 'Sin bodega');
 
-// UF automática (mindicador.cl)
-async function fetchUF(){
-  try{
-    const res = await fetch('https://mindicador.cl/api/uf');
-    const data = await res.json();
-    const valor = data && data.serie && data.serie[0] && data.serie[0].valor;
-    if(valor){
-      $('uf').value = Math.round(valor*100)/100;
-      $('ufHint').textContent = 'UF actualizada automáticamente hoy (mindicador.cl).';
-      calc();
-    } else {
-      throw new Error('sin valor');
-    }
-  }catch(e){
-    $('ufHint').textContent = 'No se pudo obtener la UF automáticamente. Verifica/edita el valor manualmente.';
-  }
-}
-
 function loadUnit(){
   const u = UNITS[sel.value];
   $('lista').value = u.lista;
@@ -296,16 +266,13 @@ function calc(){
   const L = parseInt($('plazoC').value);         // Plazo financiamiento meses
   const Q = (parseFloat($('tasa').value)||0)/100;// Tasa anual
   const R = parseInt($('plazoH').value);         // Plazo hipotecario años
-  const UF = parseFloat($('uf').value)||0;
-  const meses = mesesHastaEscritura();
 
   const D = B>0 ? (B - C)/B : 0;       // descuento máximo de lista
   const G = C + E + F;                 // TOTAL (base mínimo)
   const K = JFIN * G;                  // monto financiado (UF)
   const com = COMISION[L];             // factor comisión por plazo
   const M = D - (K * com)/B;           // descuento efectivo
-  const N = L>0 ? K / L : 0;           // cuota financiamiento (UF)
-  const O = N * UF;                    // cuota financiamiento ($)
+  const O = L>0 ? K / L : 0;           // cuota financiamiento (UF)
   const P = B*(1-M) + E + F;           // precio final (interno)
 
   const mRate = Math.pow(1+Q, 1/12) - 1;
@@ -314,19 +281,19 @@ function calc(){
   const mesesResto = R*12 - L;             // meses restantes de hipotecario tras acabar el financiamiento
   const anosResto = mesesResto/12;
 
-  // Con financiamiento: dividendo hipotecario (post escritura) sobre el mismo pie total (1-H)
+  // Con financiamiento: dividendo hipotecario (post escritura) sobre el mismo pie total (1-H), todo en UF
   const pvC = P*(1-H);
-  const S = (pay(mRate, nper, pvC) + pvC*SEG_DESG + SEG_INC*pvC) * UF;
+  const S = pay(mRate, nper, pvC) + pvC*SEG_DESG + SEG_INC*pvC;
   const pieClienteFinUF = (H-JFIN) * G;      // pie que le queda al cliente, no financiado (UF)
-  const cuotaPreFin  = (pieClienteFinUF*UF) / meses; // cuota pre escritura: solo el pie no financiado
+  const cuotaPreFin  = pieClienteFinUF / MESES_PRE_ESCRITURA; // cuota pre escritura: solo el pie no financiado
   const fase1Fin = S + O;                    // total mensual mientras dura el financiamiento (hip + financiamiento)
   const fase2Fin = S;                        // total mensual una vez pagado el financiamiento (solo hip)
 
   // Sin financiamiento
   const pvT = G*(1-H);
-  const U = (pay(mRate, nper, pvT) + pvT*SEG_DESG + SEG_INC*pvT) * UF;
+  const U = pay(mRate, nper, pvT) + pvT*SEG_DESG + SEG_INC*pvT;
   const pieClienteSinFinUF = H * G;            // pie completo (sin financiamiento, UF)
-  const cuotaPreSinFin  = (pieClienteSinFinUF*UF) / meses;
+  const cuotaPreSinFin  = pieClienteSinFinUF / MESES_PRE_ESCRITURA;
 
   // Con financiamiento outputs
   $('o_precio').textContent = uf(B);
@@ -335,50 +302,48 @@ function calc(){
   $('o_valortotal').textContent = uf(P);
   $('o_piepre').textContent  = uf(pieClienteFinUF);
   $('o_piepost').textContent = uf(K);
-  $('o_cuotapre').textContent = clp(cuotaPreFin);
-  $('o_cuotahip').textContent = clp(S);
+  $('o_cuotapre').textContent = uf(cuotaPreFin);
+  $('o_cuotahip').textContent = uf(S);
   $('o_cuotafin_lbl').textContent = `Cuota mensual financiamiento (${L} cuotas)`;
-  $('o_cuotafin').textContent = clp(O);
+  $('o_cuotafin').textContent = uf(O);
   $('o_fase1_lbl').textContent = `Total mensual (primeros ${anosFin} ${anosFin==1?'año':'años'})`;
-  $('o_fase1').textContent = clp(fase1Fin);
+  $('o_fase1').textContent = uf(fase1Fin);
   $('o_fase2_lbl').textContent = `Total mensual (${anosResto} ${anosResto==1?'año':'años'} restantes)`;
-  $('o_fase2').textContent = clp(fase2Fin);
+  $('o_fase2').textContent = uf(fase2Fin);
 
   // Sin financiamiento outputs
-  $('t_sub').textContent = `Pie en ${meses} cuotas iguales hasta escrituración (jul-2027)`;
   $('t_precio').textContent = uf(B);
   $('t_dscto').textContent  = `${uf(B*D)} (${pct(D)})`;
   $('t_estbod').textContent = uf(E+F);
   $('t_valortotal').textContent = uf(G);
   $('t_piepre').textContent  = uf(pieClienteSinFinUF);
   $('t_piepost').textContent = uf(0);
-  $('t_cuotapre').textContent = clp(cuotaPreSinFin);
-  $('t_cuotahip').textContent = clp(U);
-  $('t_fase1').textContent = clp(U);
+  $('t_cuotapre').textContent = uf(cuotaPreSinFin);
+  $('t_cuotahip').textContent = uf(U);
+  $('t_fase1').textContent = uf(U);
 
   // Comparativo
   const vPre  = cuotaPreFin - cuotaPreSinFin;   // negativo = con financiamiento paga menos antes de escriturar
   const vPost = fase1Fin - U;                   // positivo = con financiamiento paga más durante el financiamiento
-  const preEl = $('v_prediff'); preEl.textContent = (vPre>=0?'+':'') + clp(vPre);
+  const preEl = $('v_prediff'); preEl.textContent = (vPre>=0?'+':'') + uf(vPre);
   preEl.className = 'amt ' + (vPre>0?'pos':'neg');
-  const postEl = $('v_postdiff'); postEl.textContent = (vPost>=0?'+':'') + clp(vPost);
+  const postEl = $('v_postdiff'); postEl.textContent = (vPost>=0?'+':'') + uf(vPost);
   postEl.className = 'amt ' + (vPost>0?'pos':'neg');
 
   $('resumen').innerHTML =
-    `Con <b>financiamiento</b>, antes de escriturar el cliente paga <b>${clp(cuotaPreFin)}</b>/mes en vez de `+
-    `<b>${clp(cuotaPreSinFin)}</b>/mes (${clp(Math.abs(vPre))} menos). Desde la escrituración y durante `+
-    `${anosFin} ${anosFin==1?'año':'años'} paga <b>${clp(fase1Fin)}</b>/mes (dividendo + financiamiento) en vez de `+
-    `<b>${clp(U)}</b>/mes (${clp(Math.abs(vPost))} más); luego, los ${anosResto} ${anosResto==1?'año':'años'} `+
-    `restantes del hipotecario paga solo <b>${clp(fase2Fin)}</b>/mes.`;
+    `Con <b>financiamiento</b>, antes de escriturar el cliente paga <b>${uf(cuotaPreFin)}</b>/mes en vez de `+
+    `<b>${uf(cuotaPreSinFin)}</b>/mes (${uf(Math.abs(vPre))} menos). Desde la escrituración y durante `+
+    `${anosFin} ${anosFin==1?'año':'años'} paga <b>${uf(fase1Fin)}</b>/mes (dividendo + financiamiento) en vez de `+
+    `<b>${uf(U)}</b>/mes (${uf(Math.abs(vPost))} más); luego, los ${anosResto} ${anosResto==1?'año':'años'} `+
+    `restantes del hipotecario paga solo <b>${uf(fase2Fin)}</b>/mes.`;
 }
 
-['est','bod','pie','plazoC','tasa','plazoH','uf'].forEach(id=>{
+['est','bod','pie','plazoC','tasa','plazoH'].forEach(id=>{
   $(id).addEventListener('input', calc);
   $(id).addEventListener('change', calc);
 });
 sel.addEventListener('change', loadUnit);
 loadUnit();
-fetchUF();
 </script>
 </body>
 </html>
