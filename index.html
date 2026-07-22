@@ -162,7 +162,7 @@
     <div class="cols">
       <div class="panel fin">
         <h3>Financiamiento propio</h3>
-        <div class="sub" id="o_sub">Menos pie antes de escriturar; el % financiado se suma al dividendo después</div>
+        <div class="sub">Pie en 12 cuotas pre escrituración</div>
         <div class="line"><span class="lbl">Precio Lista</span><span class="val" id="o_precio"></span></div>
         <div class="line"><span class="lbl">Descuento (%)</span><span class="val" id="o_dscto"></span></div>
         <div class="line"><span class="lbl">Estacionamiento + Bodega</span><span class="val" id="o_estbod"></span></div>
@@ -187,7 +187,7 @@
 
       <div class="panel nofin">
         <h3>Financiamiento externo</h3>
-        <div class="sub">Pie en 12 cuotas iguales, pre escrituración</div>
+        <div class="sub" style="visibility:hidden">Pie en 12 cuotas pre escrituración</div>
         <div class="line"><span class="lbl">Precio Lista</span><span class="val" id="t_precio"></span></div>
         <div class="line"><span class="lbl">Descuento (%)</span><span class="val" id="t_dscto"></span></div>
         <div class="line"><span class="lbl">Estacionamiento + Bodega</span><span class="val" id="t_estbod"></span></div>
@@ -352,7 +352,6 @@ function calc(){
   $('o_dscto').textContent  = pct(M);
   $('o_estbod').textContent = uf(E+F);
   $('o_valortotal').textContent = uf(P);
-  $('o_sub').textContent = `Menos pie antes de escriturar; el ${pieFinPct}% financiado se suma al dividendo después`;
   $('o_piepre').textContent  = `${uf(pieClienteFinUF)} (${pieClientePct}%)`;
   $('o_piepost').textContent = `${uf(K)} (${pieFinPct}%)`;
   $('o_cuotapre').innerHTML = ufb(cuotaPreFin);
