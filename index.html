@@ -99,13 +99,22 @@
       </div>
 
       <label>Pie total (%)</label>
-      <select id="pie">
-        <option value="10">10%</option>
-        <option value="15">15%</option>
-        <option value="20" selected>20%</option>
-        <option value="25">25%</option>
-      </select>
-      <div class="hint">El financiamiento cubre un 10% fijo del pie; el resto (pie − 10%) se paga en cuotas antes de escriturar.</div>
+      <input id="pieTotal" readonly>
+
+      <div class="row2">
+        <div>
+          <label>Pie cliente (%)</label>
+          <input id="pieCliente" type="number" step="1" min="5" value="10">
+        </div>
+        <div>
+          <label>Pie financiamiento (%)</label>
+          <select id="pieFin">
+            <option value="5">5%</option>
+            <option value="10" selected>10%</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint" id="pieClienteWarn" style="display:none;color:#dc2626;">El pie cliente no puede ser menor a 5%.</div>
 
       <label>Plazo del financiamiento (meses)</label>
       <select id="plazoC">
@@ -139,7 +148,7 @@
     <div class="cols">
       <div class="panel fin">
         <h3>Con financiamiento</h3>
-        <div class="sub">Menos pie antes de escriturar; el 10% financiado se suma al dividendo después</div>
+        <div class="sub" id="o_sub">Menos pie antes de escriturar; el % financiado se suma al dividendo después</div>
         <div class="line"><span class="lbl">Precio Lista</span><span class="val" id="o_precio"></span></div>
         <div class="line"><span class="lbl">Descuento</span><span class="val" id="o_dscto"></span></div>
         <div class="line"><span class="lbl">Estacionamiento + Bodega</span><span class="val" id="o_estbod"></span></div>
@@ -207,7 +216,11 @@ const BODEGAS = [{"nombre": "BB-001", "precio": 75}, {"nombre": "BB-003", "preci
 const ESTAC = [{"nombre": "EE-001", "precio": 450}, {"nombre": "EE-004", "precio": 450}, {"nombre": "EE-005", "precio": 450}, {"nombre": "EE-006", "precio": 450}, {"nombre": "EE-014", "precio": 450}, {"nombre": "EE-015", "precio": 450}, {"nombre": "EE-017", "precio": 450}, {"nombre": "EE-018", "precio": 450}, {"nombre": "EE-019", "precio": 450}, {"nombre": "EE-020", "precio": 450}, {"nombre": "EE-021", "precio": 450}, {"nombre": "EE-022", "precio": 450}, {"nombre": "EE-027", "precio": 425}, {"nombre": "EE-028", "precio": 425}, {"nombre": "EE-029", "precio": 425}, {"nombre": "EE-031", "precio": 400}, {"nombre": "EE-032", "precio": 400}, {"nombre": "EE-033", "precio": 400}, {"nombre": "EE-034", "precio": 400}, {"nombre": "EE-054", "precio": 440}, {"nombre": "EE-055", "precio": 410}, {"nombre": "EE-056", "precio": 450}, {"nombre": "EE-059", "precio": 450}, {"nombre": "EE-060", "precio": 450}, {"nombre": "EE-065", "precio": 440}, {"nombre": "EE-066", "precio": 440}, {"nombre": "EE-067", "precio": 440}, {"nombre": "EE-071", "precio": 440}, {"nombre": "EE-072", "precio": 440}, {"nombre": "EE-080", "precio": 440}, {"nombre": "EE-083", "precio": 440}, {"nombre": "EE-088", "precio": 415}, {"nombre": "EE-089", "precio": 415}, {"nombre": "EE-090", "precio": 415}, {"nombre": "EE-093", "precio": 390}, {"nombre": "EE-094", "precio": 390}, {"nombre": "EE-095", "precio": 390}, {"nombre": "EE-096", "precio": 390}, {"nombre": "EE-097", "precio": 390}, {"nombre": "EE-098", "precio": 390}, {"nombre": "EE-099", "precio": 490}, {"nombre": "EE-101", "precio": 440}, {"nombre": "EE-118", "precio": 430}, {"nombre": "EE-119", "precio": 380}, {"nombre": "EE-126", "precio": 430}, {"nombre": "EE-127", "precio": 430}, {"nombre": "EE-139", "precio": 430}, {"nombre": "EE-140", "precio": 405}, {"nombre": "EE-141", "precio": 405}, {"nombre": "EE-142", "precio": 405}, {"nombre": "EE-143", "precio": 405}, {"nombre": "EE-144", "precio": 405}, {"nombre": "EE-145", "precio": 405}, {"nombre": "EE-146", "precio": 430}, {"nombre": "EE-147", "precio": 455}, {"nombre": "EE-148", "precio": 455}, {"nombre": "EE-149", "precio": 380}, {"nombre": "EE-150", "precio": 380}, {"nombre": "EE-151", "precio": 380}, {"nombre": "EE-152", "precio": 380}, {"nombre": "EE-153", "precio": 380}, {"nombre": "EE-154", "precio": 355}, {"nombre": "EE-171", "precio": 430}, {"nombre": "EE-181", "precio": 420}, {"nombre": "EE-182", "precio": 420}, {"nombre": "EE-183", "precio": 420}, {"nombre": "EE-187", "precio": 420}, {"nombre": "EE-188", "precio": 420}, {"nombre": "EE-190", "precio": 420}, {"nombre": "EE-194", "precio": 420}, {"nombre": "EE-197", "precio": 395}, {"nombre": "EE-198", "precio": 395}, {"nombre": "EE-199", "precio": 395}, {"nombre": "EE-200", "precio": 395}, {"nombre": "EE-201", "precio": 395}, {"nombre": "EE-205", "precio": 370}, {"nombre": "EE-206", "precio": 370}, {"nombre": "EE-207", "precio": 370}, {"nombre": "EE-208", "precio": 370}, {"nombre": "EE-215", "precio": 420}, {"nombre": "EE-216", "precio": 420}, {"nombre": "EE-224", "precio": 420}, {"nombre": "EE-225", "precio": 420}, {"nombre": "EE-226", "precio": 420}, {"nombre": "EE-227", "precio": 410}, {"nombre": "EE-228", "precio": 360}, {"nombre": "EE-229", "precio": 420}, {"nombre": "EE-235", "precio": 420}, {"nombre": "EE-236", "precio": 410}, {"nombre": "EE-237", "precio": 410}, {"nombre": "EE-238", "precio": 410}, {"nombre": "EE-239", "precio": 410}, {"nombre": "EE-240", "precio": 410}, {"nombre": "EE-241", "precio": 410}, {"nombre": "EE-242", "precio": 410}, {"nombre": "EE-243", "precio": 325}, {"nombre": "EE-244", "precio": 325}, {"nombre": "EE-245", "precio": 375}, {"nombre": "EE-246", "precio": 375}, {"nombre": "EE-247", "precio": 375}, {"nombre": "EE-248", "precio": 375}, {"nombre": "EE-249", "precio": 325}, {"nombre": "EE-250", "precio": 325}, {"nombre": "EE-252", "precio": 425}, {"nombre": "EE-254", "precio": 325}, {"nombre": "EE-255", "precio": 325}, {"nombre": "EE-256", "precio": 325}, {"nombre": "EE-257", "precio": 325}, {"nombre": "EE-258", "precio": 410}, {"nombre": "EE-262", "precio": 410}, {"nombre": "EE-270", "precio": 460}, {"nombre": "EE-271", "precio": 385}, {"nombre": "EE-273", "precio": 385}, {"nombre": "EE-274", "precio": 385}, {"nombre": "EE-275", "precio": 460}, {"nombre": "EE-276", "precio": 410}, {"nombre": "EE-277", "precio": 410}, {"nombre": "EE-278", "precio": 410}, {"nombre": "EE-281", "precio": 410}, {"nombre": "EE-283", "precio": 410}];
 const SEG_DESG = 0.00015;
 const SEG_INC  = 0;
-const COMISION = {12:0.20, 24:0.25, 36:0.30, 48:0.40, 60:0.45};
+// Hoja1 A4:D8 "porcentaje PIE": columna C = comisión con financiamiento 5%, columna D = con 10%
+const COMISION = {
+  5:  {12:0.0100, 24:0.0125, 36:0.0150, 48:0.0200, 60:0.0225},
+  10: {12:0.0200, 24:0.0250, 36:0.0300, 48:0.0400, 60:0.0450}
+};
 const MESES_PRE_ESCRITURA = 12; // el pie pre escrituración siempre se paga en 12 cuotas fijas
 
 const $ = id => document.getElementById(id);
@@ -261,8 +274,21 @@ function calc(){
   const C = parseFloat(UNITS[sel.value].min)||0; // Precio minimo (interno, no se muestra)
   const E = parseFloat($('est').value)||0;       // Estacionamiento
   const F = parseFloat($('bod').value)||0;       // Bodega
-  const H = (parseFloat($('pie').value)||0)/100; // Pie total elegido
-  const JFIN = Math.min(0.10, H);                // Financiamiento: fijo 10% (tope)
+
+  let pieClientePct = parseFloat($('pieCliente').value)||0;
+  if(pieClientePct < 5){
+    pieClientePct = 5;
+    $('pieCliente').value = 5;
+    $('pieClienteWarn').style.display = 'block';
+  } else {
+    $('pieClienteWarn').style.display = 'none';
+  }
+  const pieFinPct = parseInt($('pieFin').value); // 5 o 10
+  const ICLIENTE = pieClientePct/100;             // pie cliente (fracción)
+  const JFIN = pieFinPct/100;                     // pie financiamiento (fracción)
+  const H = ICLIENTE + JFIN;                      // pie total (fracción)
+  $('pieTotal').value = (pieClientePct+pieFinPct).toLocaleString('es-CL',{maximumFractionDigits:0}) + '%';
+
   const L = parseInt($('plazoC').value);         // Plazo financiamiento meses
   const Q = (parseFloat($('tasa').value)||0)/100;// Tasa anual
   const R = parseInt($('plazoH').value);         // Plazo hipotecario años
@@ -270,7 +296,7 @@ function calc(){
   const D = B>0 ? (B - C)/B : 0;       // descuento máximo de lista
   const G = C + E + F;                 // TOTAL (base mínimo)
   const K = JFIN * G;                  // monto financiado (UF)
-  const com = COMISION[L];             // factor comisión por plazo
+  const com = COMISION[pieFinPct][L];  // comisión según % financiamiento y plazo (Hoja1 A4:D8)
   const M = D - (K * com)/B;           // descuento efectivo
   const O = L>0 ? K / L : 0;           // cuota financiamiento (UF)
   const P = B*(1-M) + E + F;           // precio final (interno)
@@ -284,7 +310,7 @@ function calc(){
   // Con financiamiento: dividendo hipotecario (post escritura) sobre el mismo pie total (1-H), todo en UF
   const pvC = P*(1-H);
   const S = pay(mRate, nper, pvC) + pvC*SEG_DESG + SEG_INC*pvC;
-  const pieClienteFinUF = (H-JFIN) * G;      // pie que le queda al cliente, no financiado (UF)
+  const pieClienteFinUF = ICLIENTE * G;      // pie que le queda al cliente, no financiado (UF)
   const cuotaPreFin  = pieClienteFinUF / MESES_PRE_ESCRITURA; // cuota pre escritura: solo el pie no financiado
   const fase1Fin = S + O;                    // total mensual mientras dura el financiamiento (hip + financiamiento)
   const fase2Fin = S;                        // total mensual una vez pagado el financiamiento (solo hip)
@@ -300,6 +326,7 @@ function calc(){
   $('o_dscto').textContent  = `${uf(B*M)} (${pct(M)})`;
   $('o_estbod').textContent = uf(E+F);
   $('o_valortotal').textContent = uf(P);
+  $('o_sub').textContent = `Menos pie antes de escriturar; el ${pieFinPct}% financiado se suma al dividendo después`;
   $('o_piepre').textContent  = uf(pieClienteFinUF);
   $('o_piepost').textContent = uf(K);
   $('o_cuotapre').textContent = uf(cuotaPreFin);
@@ -338,7 +365,7 @@ function calc(){
     `restantes del hipotecario paga solo <b>${uf(fase2Fin)}</b>/mes.`;
 }
 
-['est','bod','pie','plazoC','tasa','plazoH'].forEach(id=>{
+['est','bod','pieCliente','pieFin','plazoC','tasa','plazoH'].forEach(id=>{
   $(id).addEventListener('input', calc);
   $(id).addEventListener('change', calc);
 });
