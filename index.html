@@ -64,6 +64,7 @@
   .big{margin-top:14px;padding:15px 16px;border-radius:8px;background:#fff;border:1px solid rgba(33,43,38,.08)}
   .big .cap{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:600}
   .big .amt{font-size:25px;font-weight:600;font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;margin-top:4px}
+  .big .amt .clphint{font-size:13px;font-weight:500;opacity:.68;letter-spacing:0}
   .panel.fin .big .amt{color:var(--fin)}
   .panel.nofin .big .amt{color:var(--nofin)}
   .verdict{margin-top:20px;border-radius:10px;padding:20px 22px;border:1px solid var(--line);background:var(--card);
@@ -247,7 +248,7 @@ const clp = v => isFinite(v) ? '$' + Math.round(v).toLocaleString('es-CL') : '�
 
 // Valor UF del día (mindicador.cl), solo para mostrar el equivalente en $ en los recuadros de cuota mensual
 let UF_VALOR = 40700;
-const ufb = v => `${uf(v)} (${clp(v*UF_VALOR)})`;
+const ufb = v => `${uf(v)} <span class="clphint">(${clp(v*UF_VALOR)})</span>`;
 async function fetchUF(){
   try{
     const res = await fetch('https://mindicador.cl/api/uf');
@@ -354,14 +355,14 @@ function calc(){
   $('o_sub').textContent = `Menos pie antes de escriturar; el ${pieFinPct}% financiado se suma al dividendo después`;
   $('o_piepre').textContent  = `${uf(pieClienteFinUF)} (${pieClientePct}%)`;
   $('o_piepost').textContent = `${uf(K)} (${pieFinPct}%)`;
-  $('o_cuotapre').textContent = ufb(cuotaPreFin);
+  $('o_cuotapre').innerHTML = ufb(cuotaPreFin);
   $('o_cuotahip').textContent = uf(S);
   $('o_cuotafin_lbl').textContent = `Cuota mensual financiamiento (${L} cuotas)`;
   $('o_cuotafin').textContent = uf(O);
   $('o_fase1_lbl').textContent = `Total mensual (primeros ${anosFin} ${anosFin==1?'año':'años'})`;
-  $('o_fase1').textContent = ufb(fase1Fin);
+  $('o_fase1').innerHTML = ufb(fase1Fin);
   $('o_fase2_lbl').textContent = `Total mensual (${anosResto} ${anosResto==1?'año':'años'} restantes)`;
-  $('o_fase2').textContent = ufb(fase2Fin);
+  $('o_fase2').innerHTML = ufb(fase2Fin);
 
   // Sin financiamiento outputs
   $('t_precio').textContent = uf(B);
@@ -370,10 +371,10 @@ function calc(){
   $('t_valortotal').textContent = uf(G);
   $('t_piepre').textContent  = `${uf(pieClienteSinFinUF)} (${pieTotalPct}%)`;
   $('t_piepost').textContent = `${uf(0)} (0%)`;
-  $('t_cuotapre').textContent = ufb(cuotaPreSinFin);
+  $('t_cuotapre').innerHTML = ufb(cuotaPreSinFin);
   $('t_cuotahip').textContent = uf(U);
   $('t_fase1_lbl').textContent = `Total mensual (${R} años)`;
-  $('t_fase1').textContent = ufb(U);
+  $('t_fase1').innerHTML = ufb(U);
 
   // Comparativo
   const vPre  = cuotaPreFin - cuotaPreSinFin;   // negativo = con financiamiento paga menos antes de escriturar
