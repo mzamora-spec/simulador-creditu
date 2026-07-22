@@ -78,12 +78,34 @@
   .badge.disp{background:var(--ok-bg);color:var(--ok)}
   .badge.bloq{background:var(--bad-bg);color:var(--bad)}
   .foot{font-size:12.5px;color:var(--ink);margin-top:16px;line-height:1.65;opacity:.85}
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+  .pdf-btn{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--brand-d);
+           border:none;border-radius:6px;padding:10px 16px;font-family:'IBM Plex Sans',sans-serif;
+           font-size:13px;font-weight:600;letter-spacing:.2px;cursor:pointer;white-space:nowrap;
+           box-shadow:0 1px 2px rgba(0,0,0,.15);transition:background .12s,transform .12s}
+  .pdf-btn:hover{background:var(--gold-lt)}
+  .pdf-btn:active{transform:translateY(1px)}
+  .pdf-btn svg{width:15px;height:15px;flex:none}
+  @media print{
+    .pdf-btn{display:none}
+    body{background:#fff}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
+    .grid{grid-template-columns:1fr!important}
+    .card,.panel,.verdict{box-shadow:none!important}
+    @page{margin:1.2cm}
+  }
 </style>
 </head>
 <body>
 <header>
-  <div class="kicker">Element de Barrio Parque</div>
-  <h1>Simulador de Financiamiento de Pie</h1>
+  <div>
+    <div class="kicker">Element de Barrio Parque</div>
+    <h1>Simulador de Financiamiento de Pie</h1>
+  </div>
+  <button class="pdf-btn" onclick="window.print()" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Exportar PDF
+  </button>
 </header>
 
 <div class="wrap">
