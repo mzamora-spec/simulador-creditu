@@ -9,13 +9,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#eef0f3; --card:#ffffff; --ink:#1a2438; --muted:#5c6577;
-    --line:#dde1e8; --line-soft:#e9ebef;
-    --brand:#1c3f66; --brand-d:#142f4d; --gold:#a8823c;
-    --fin:#4b3f8f; --fin-tint:#f6f4fb; --fin-line:#ded7f0;
-    --nofin:#0d5f52; --nofin-tint:#eef8f6; --nofin-line:#cbe9e1;
-    --pos:#a13f3a; --neg:#2f7d55;
-    --ok-bg:#e9f5ee; --ok:#1f7a4d; --bad-bg:#faeceb; --bad:#a13f3a;
+    --paper:#eef1ed; --card:#ffffff; --ink:#212b26; --muted:#61706a;
+    --line:#dde3de; --line-soft:#e8ede9;
+    --brand:#1f5245; --brand-d:#173d33; --gold:#b0894a; --gold-lt:#dcbc7f;
+    --fin:#1e7a5e; --fin-tint:#eef6f2; --fin-line:#cfe8dd;
+    --nofin:#46617a; --nofin-tint:#eef1f5; --nofin-line:#d5dee7;
+    --pos:#b0553f; --neg:#1e7a5e;
+    --ok-bg:#e7f4ec; --ok:#1e7a5e; --bad-bg:#f7ece8; --bad:#b0553f;
   }
   *{box-sizing:border-box}
   html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
@@ -23,14 +23,22 @@
        background:var(--paper);color:var(--ink);line-height:1.45}
   h1,h2,h3,.serif{font-family:'Libre Caslon Text','Iowan Old Style',Georgia,serif}
   header{background:linear-gradient(180deg,var(--brand),var(--brand-d));color:#fff;
-         padding:26px 32px 22px;border-bottom:3px solid var(--gold)}
-  header h1{margin:0;font-size:23px;font-weight:400;letter-spacing:.2px}
-  header p{margin:5px 0 0;color:#c7d2e0;font-size:12.5px;letter-spacing:.2px}
-  .wrap{max-width:1180px;margin:0 auto;padding:26px 18px 60px}
-  .grid{display:grid;grid-template-columns:380px 1fr;gap:22px;align-items:start}
-  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+         padding:26px 32px 24px;border-bottom:3px solid var(--gold)}
+  header .kicker{margin:0 0 6px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;
+                 letter-spacing:2.4px;text-transform:uppercase;color:var(--gold-lt)}
+  header h1{margin:0;font-size:24px;font-weight:400;letter-spacing:.2px}
+  .wrap{max-width:1220px;margin:0 auto;padding:26px 18px 60px}
+  .grid{display:grid;grid-template-columns:1fr 1fr 372px;gap:20px;align-items:start;
+        grid-template-areas:"propio externo calc" "verdict verdict calc"}
+  .grid>.card{grid-area:calc}
+  .grid>.panel.fin{grid-area:propio}
+  .grid>.panel.nofin{grid-area:externo}
+  .grid>.verdict{grid-area:verdict}
+  @media(max-width:980px){
+    .grid{grid-template-columns:1fr;grid-template-areas:"calc" "propio" "externo" "verdict"}
+  }
   .card{background:var(--card);border:1px solid var(--line);border-radius:10px;
-        box-shadow:0 1px 2px rgba(26,36,56,.04),0 6px 16px rgba(26,36,56,.05)}
+        box-shadow:0 1px 2px rgba(33,43,38,.04),0 6px 16px rgba(33,43,38,.05)}
   .card h2{margin:0;padding:15px 20px;font-size:12px;border-bottom:1px solid var(--line);
            text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-family:'IBM Plex Sans',sans-serif;font-weight:600}
   .card .body{padding:18px 20px 20px}
@@ -49,24 +57,27 @@
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
   @media(max-width:640px){.cols{grid-template-columns:1fr}}
   .panel{border-radius:10px;padding:20px;border:1px solid;border-top-width:3px;
-         box-shadow:0 1px 2px rgba(26,36,56,.03)}
+         box-shadow:0 1px 2px rgba(33,43,38,.03)}
   .panel.fin{background:var(--fin-tint);border-color:var(--fin-line);border-top-color:var(--fin)}
   .panel.nofin{background:var(--nofin-tint);border-color:var(--nofin-line);border-top-color:var(--nofin)}
   .panel h3{margin:0 0 5px;font-size:17px;font-weight:400}
   .panel.fin h3{color:var(--fin)}
   .panel.nofin h3{color:var(--nofin)}
   .panel .sub{font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.5}
-  .line{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid rgba(26,36,56,.07);font-size:13px}
+  .line{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid rgba(33,43,38,.07);font-size:13px}
   .line:last-child{border-bottom:none}
   .line .lbl{color:var(--muted)}
   .line .val{font-weight:600;font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:12.5px}
-  .big{margin-top:14px;padding:15px 16px;border-radius:8px;background:#fff;border:1px solid rgba(26,36,56,.08)}
+  .big{margin-top:14px;padding:15px 16px;border-radius:8px;background:#fff;border:1px solid rgba(33,43,38,.08)}
   .big .cap{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:600}
   .big .amt{font-size:25px;font-weight:600;font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;margin-top:4px}
   .panel.fin .big .amt{color:var(--fin)}
   .panel.nofin .big .amt{color:var(--nofin)}
-  .verdict{margin-top:20px;border-radius:10px;padding:20px 22px;border:1px solid var(--line);background:var(--card);
-           box-shadow:0 1px 2px rgba(26,36,56,.04)}
+  .verdict{margin-top:0;border-radius:10px;padding:20px 22px;border:1px solid var(--line);background:var(--card);
+           box-shadow:0 1px 2px rgba(33,43,38,.04)}
+  .tag{display:inline-block;font-family:'IBM Plex Sans',sans-serif;font-size:10px;font-weight:700;
+       text-transform:uppercase;letter-spacing:.9px;padding:3px 10px;border-radius:3px;
+       background:var(--fin);color:#fff;margin-bottom:9px}
   .verdict .top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line-soft)}
   .metric{flex:1;min-width:160px}
   .metric .cap{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:600}
@@ -80,7 +91,8 @@
 </head>
 <body>
 <header>
-  <h1>Simulador de Financiamiento del Pie</h1>
+  <div class="kicker">Element de Barrio Parque</div>
+  <h1>Simulador de Financiamiento de Pie</h1>
 </header>
 
 <div class="wrap">
@@ -154,68 +166,67 @@
     </div>
   </div>
 
-  <!-- RESULTADOS -->
-  <div>
-    <div class="cols">
-      <div class="panel fin">
-        <h3>Con financiamiento</h3>
-        <div class="sub" id="o_sub">Menos pie antes de escriturar; el % financiado se suma al dividendo después</div>
-        <div class="line"><span class="lbl">Precio Lista</span><span class="val" id="o_precio"></span></div>
-        <div class="line"><span class="lbl">Descuento (%)</span><span class="val" id="o_dscto"></span></div>
-        <div class="line"><span class="lbl">Estacionamiento + Bodega</span><span class="val" id="o_estbod"></span></div>
-        <div class="line"><span class="lbl">Valor Total</span><span class="val" id="o_valortotal"></span></div>
-        <div class="line"><span class="lbl">Pie pre escrituración</span><span class="val" id="o_piepre"></span></div>
-        <div class="line"><span class="lbl">Pie post escrituración</span><span class="val" id="o_piepost"></span></div>
-        <div class="big">
-          <div class="cap">Cuota mensual pre escrituración (pie)</div>
-          <div class="amt" id="o_cuotapre"></div>
-        </div>
-        <div class="line"><span class="lbl">Cuota mensual dividendo del hip.</span><span class="val" id="o_cuotahip"></span></div>
-        <div class="line"><span class="lbl" id="o_cuotafin_lbl">Cuota mensual financiamiento</span><span class="val" id="o_cuotafin"></span></div>
-        <div class="big" style="background:var(--fin);color:#fff">
-          <div class="cap" style="color:#d8d2ef" id="o_fase1_lbl">Total mensual (primeros años)</div>
-          <div class="amt" id="o_fase1" style="color:#fff"></div>
-        </div>
-        <div class="big">
-          <div class="cap" id="o_fase2_lbl">Total mensual (años restantes)</div>
-          <div class="amt" id="o_fase2"></div>
-        </div>
-      </div>
+  <!-- RESULTADOS: financiamiento propio (izq) -->
+  <div class="panel fin">
+    <div class="tag">Recomendado</div>
+    <h3>Financiamiento propio</h3>
+    <div class="sub" id="o_sub">Menos pie antes de escriturar; el % financiado se suma al dividendo después</div>
+    <div class="line"><span class="lbl">Precio Lista</span><span class="val" id="o_precio"></span></div>
+    <div class="line"><span class="lbl">Descuento (%)</span><span class="val" id="o_dscto"></span></div>
+    <div class="line"><span class="lbl">Estacionamiento + Bodega</span><span class="val" id="o_estbod"></span></div>
+    <div class="line"><span class="lbl">Valor Total</span><span class="val" id="o_valortotal"></span></div>
+    <div class="line"><span class="lbl">Pie pre escrituración</span><span class="val" id="o_piepre"></span></div>
+    <div class="line"><span class="lbl">Pie post escrituración</span><span class="val" id="o_piepost"></span></div>
+    <div class="big">
+      <div class="cap">Cuota mensual pre escrituración (pie)</div>
+      <div class="amt" id="o_cuotapre"></div>
+    </div>
+    <div class="line"><span class="lbl">Cuota mensual dividendo del hip.</span><span class="val" id="o_cuotahip"></span></div>
+    <div class="line"><span class="lbl" id="o_cuotafin_lbl">Cuota mensual financiamiento</span><span class="val" id="o_cuotafin"></span></div>
+    <div class="big" style="background:var(--fin);color:#fff">
+      <div class="cap" style="color:#cdeadf" id="o_fase1_lbl">Total mensual (primeros años)</div>
+      <div class="amt" id="o_fase1" style="color:#fff"></div>
+    </div>
+    <div class="big">
+      <div class="cap" id="o_fase2_lbl">Total mensual (años restantes)</div>
+      <div class="amt" id="o_fase2"></div>
+    </div>
+  </div>
 
-      <div class="panel nofin">
-        <h3>Sin financiamiento</h3>
-        <div class="sub">Pie en 12 cuotas iguales, pre escrituración</div>
-        <div class="line"><span class="lbl">Precio Lista</span><span class="val" id="t_precio"></span></div>
-        <div class="line"><span class="lbl">Descuento (%)</span><span class="val" id="t_dscto"></span></div>
-        <div class="line"><span class="lbl">Estacionamiento + Bodega</span><span class="val" id="t_estbod"></span></div>
-        <div class="line"><span class="lbl">Valor Total</span><span class="val" id="t_valortotal"></span></div>
-        <div class="line"><span class="lbl">Pie pre escrituración</span><span class="val" id="t_piepre"></span></div>
-        <div class="line"><span class="lbl">Pie post escrituración</span><span class="val" id="t_piepost"></span></div>
-        <div class="big">
-          <div class="cap">Cuota mensual pre escrituración (pie)</div>
-          <div class="amt" id="t_cuotapre"></div>
-        </div>
-        <div class="line"><span class="lbl">Cuota mensual dividendo del hip.</span><span class="val" id="t_cuotahip"></span></div>
-        <div class="big" style="background:var(--nofin);color:#fff">
-          <div class="cap" style="color:#bfe6dd" id="t_fase1_lbl">Total mensual</div>
-          <div class="amt" id="t_fase1" style="color:#fff"></div>
-        </div>
+  <!-- RESULTADOS: financiamiento externo (centro) -->
+  <div class="panel nofin">
+    <h3>Financiamiento externo</h3>
+    <div class="sub">Pie en 12 cuotas iguales, pre escrituración</div>
+    <div class="line"><span class="lbl">Precio Lista</span><span class="val" id="t_precio"></span></div>
+    <div class="line"><span class="lbl">Descuento (%)</span><span class="val" id="t_dscto"></span></div>
+    <div class="line"><span class="lbl">Estacionamiento + Bodega</span><span class="val" id="t_estbod"></span></div>
+    <div class="line"><span class="lbl">Valor Total</span><span class="val" id="t_valortotal"></span></div>
+    <div class="line"><span class="lbl">Pie pre escrituración</span><span class="val" id="t_piepre"></span></div>
+    <div class="line"><span class="lbl">Pie post escrituración</span><span class="val" id="t_piepost"></span></div>
+    <div class="big">
+      <div class="cap">Cuota mensual pre escrituración (pie)</div>
+      <div class="amt" id="t_cuotapre"></div>
+    </div>
+    <div class="line"><span class="lbl">Cuota mensual dividendo del hip.</span><span class="val" id="t_cuotahip"></span></div>
+    <div class="big" style="background:var(--nofin);color:#fff">
+      <div class="cap" style="color:#cdd8e4" id="t_fase1_lbl">Total mensual</div>
+      <div class="amt" id="t_fase1" style="color:#fff"></div>
+    </div>
+  </div>
+
+  <!-- COMPARATIVO -->
+  <div class="verdict">
+    <div class="top">
+      <div class="metric">
+        <div class="cap">Diferencia cuota pre escrituración (propio − externo)</div>
+        <div class="amt" id="v_prediff"></div>
+      </div>
+      <div class="metric">
+        <div class="cap">Diferencia total mensual post escrituración (propio − externo)</div>
+        <div class="amt" id="v_postdiff"></div>
       </div>
     </div>
-
-    <div class="verdict">
-      <div class="top">
-        <div class="metric">
-          <div class="cap">Diferencia cuota pre escrituración (con − sin)</div>
-          <div class="amt" id="v_prediff"></div>
-        </div>
-        <div class="metric">
-          <div class="cap">Diferencia total mensual post escrituración (con − sin)</div>
-          <div class="amt" id="v_postdiff"></div>
-        </div>
-      </div>
-      <div class="foot" id="resumen"></div>
-    </div>
+    <div class="foot" id="resumen"></div>
   </div>
 
 </div>
@@ -369,7 +380,7 @@ function calc(){
   postEl.className = 'amt ' + (vPost>0?'pos':'neg');
 
   $('resumen').innerHTML =
-    `Con <b>financiamiento</b>, antes de escriturar el cliente paga <b>${uf(cuotaPreFin)}</b>/mes en vez de `+
+    `Con <b>financiamiento propio</b>, antes de escriturar el cliente paga <b>${uf(cuotaPreFin)}</b>/mes en vez de `+
     `<b>${uf(cuotaPreSinFin)}</b>/mes (${uf(Math.abs(vPre))} menos). Desde la escrituración y durante `+
     `${anosFin} ${anosFin==1?'año':'años'} paga <b>${uf(fase1Fin)}</b>/mes (dividendo + financiamiento) en vez de `+
     `<b>${uf(U)}</b>/mes (${uf(Math.abs(vPost))} más); luego, los ${anosResto} ${anosResto==1?'año':'años'} `+
