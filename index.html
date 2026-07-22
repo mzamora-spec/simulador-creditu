@@ -4,67 +4,78 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Simulador de Financiamiento del Pie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0f172a; --card:#ffffff; --ink:#0f172a; --muted:#64748b;
-    --line:#e2e8f0; --brand:#2563eb; --brand-d:#1d4ed8;
-    --green:#059669; --green-bg:#ecfdf5; --amber:#d97706; --amber-bg:#fffbeb;
-    --red:#dc2626; --fin:#7c3aed; --fin-bg:#f5f3ff;
-    --nofin:#0f766e; --nofin-bg:#f0fdfa;
+    --paper:#eef0f3; --card:#ffffff; --ink:#1a2438; --muted:#5c6577;
+    --line:#dde1e8; --line-soft:#e9ebef;
+    --brand:#1c3f66; --brand-d:#142f4d; --gold:#a8823c;
+    --fin:#4b3f8f; --fin-tint:#f6f4fb; --fin-line:#ded7f0;
+    --nofin:#0d5f52; --nofin-tint:#eef8f6; --nofin-line:#cbe9e1;
+    --pos:#a13f3a; --neg:#2f7d55;
+    --ok-bg:#e9f5ee; --ok:#1f7a4d; --bad-bg:#faeceb; --bad:#a13f3a;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f1f5f9;color:var(--ink);
-       line-height:1.4;-webkit-font-smoothing:antialiased}
-  header{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;padding:22px 28px}
-  header h1{margin:0;font-size:20px;letter-spacing:.3px}
-  header p{margin:4px 0 0;color:#cbd5e1;font-size:13px}
-  .wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+  html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  body{margin:0;font-family:'IBM Plex Sans',-apple-system,'Segoe UI',Arial,sans-serif;
+       background:var(--paper);color:var(--ink);line-height:1.45}
+  h1,h2,h3,.serif{font-family:'Libre Caslon Text','Iowan Old Style',Georgia,serif}
+  header{background:linear-gradient(180deg,var(--brand),var(--brand-d));color:#fff;
+         padding:26px 32px 22px;border-bottom:3px solid var(--gold)}
+  header h1{margin:0;font-size:23px;font-weight:400;letter-spacing:.2px}
+  header p{margin:5px 0 0;color:#c7d2e0;font-size:12.5px;letter-spacing:.2px}
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 18px 60px}
   .grid{display:grid;grid-template-columns:380px 1fr;gap:22px;align-items:start}
   @media(max-width:900px){.grid{grid-template-columns:1fr}}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
-        box-shadow:0 1px 3px rgba(0,0,0,.05)}
-  .card h2{margin:0;padding:14px 18px;font-size:14px;border-bottom:1px solid var(--line);
-           text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
-  .card .body{padding:16px 18px}
-  label{display:block;font-size:12px;font-weight:bold;color:var(--muted);margin:12px 0 5px;
-        text-transform:uppercase;letter-spacing:.3px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;
+        box-shadow:0 1px 2px rgba(26,36,56,.04),0 6px 16px rgba(26,36,56,.05)}
+  .card h2{margin:0;padding:15px 20px;font-size:12px;border-bottom:1px solid var(--line);
+           text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-family:'IBM Plex Sans',sans-serif;font-weight:600}
+  .card .body{padding:18px 20px 20px}
+  label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin:14px 0 6px;
+        text-transform:uppercase;letter-spacing:.6px}
   label:first-child{margin-top:0}
   input,select{width:100%;padding:9px 11px;font-size:14px;border:1px solid var(--line);
-    border-radius:8px;font-family:inherit;background:#fff;color:var(--ink)}
-  input:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
-  input[readonly]{background:#f8fafc;color:var(--muted);font-weight:bold}
+    border-radius:6px;font-family:'IBM Plex Sans',sans-serif;background:#fff;color:var(--ink);
+    transition:border-color .12s,box-shadow .12s}
+  input:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(28,63,102,.12)}
+  input[readonly]{background:var(--paper);color:var(--ink);font-weight:600;font-family:'IBM Plex Mono',ui-monospace,monospace}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .hint{font-size:11px;color:var(--muted);margin-top:4px;font-weight:normal;text-transform:none;letter-spacing:0}
-  .unitinfo{background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:6px;font-size:12px;color:var(--muted)}
-  .unitinfo b{color:var(--ink)}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:5px;font-weight:normal;text-transform:none;letter-spacing:0;line-height:1.5}
+  .unitinfo{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-top:7px;font-size:12px;color:var(--muted)}
+  .unitinfo b{color:var(--ink);font-weight:600}
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
   @media(max-width:640px){.cols{grid-template-columns:1fr}}
-  .panel{border-radius:12px;padding:18px;border:1px solid}
-  .panel.fin{background:var(--fin-bg);border-color:#ddd6fe}
-  .panel.nofin{background:var(--nofin-bg);border-color:#99f6e4}
-  .panel h3{margin:0 0 4px;font-size:15px}
+  .panel{border-radius:10px;padding:20px;border:1px solid;border-top-width:3px;
+         box-shadow:0 1px 2px rgba(26,36,56,.03)}
+  .panel.fin{background:var(--fin-tint);border-color:var(--fin-line);border-top-color:var(--fin)}
+  .panel.nofin{background:var(--nofin-tint);border-color:var(--nofin-line);border-top-color:var(--nofin)}
+  .panel h3{margin:0 0 5px;font-size:17px;font-weight:400}
   .panel.fin h3{color:var(--fin)}
   .panel.nofin h3{color:var(--nofin)}
-  .panel .sub{font-size:12px;color:var(--muted);margin-bottom:14px}
-  .line{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px dashed rgba(0,0,0,.08);font-size:13px}
+  .panel .sub{font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+  .line{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid rgba(26,36,56,.07);font-size:13px}
   .line:last-child{border-bottom:none}
   .line .lbl{color:var(--muted)}
-  .line .val{font-weight:bold;font-variant-numeric:tabular-nums}
-  .big{margin-top:12px;padding:14px;border-radius:10px;background:#fff;border:1px solid rgba(0,0,0,.06)}
-  .big .cap{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
-  .big .amt{font-size:26px;font-weight:bold;font-variant-numeric:tabular-nums;margin-top:2px}
+  .line .val{font-weight:600;font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:12.5px}
+  .big{margin-top:14px;padding:15px 16px;border-radius:8px;background:#fff;border:1px solid rgba(26,36,56,.08)}
+  .big .cap{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:600}
+  .big .amt{font-size:25px;font-weight:600;font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;margin-top:4px}
   .panel.fin .big .amt{color:var(--fin)}
   .panel.nofin .big .amt{color:var(--nofin)}
-  .verdict{margin-top:18px;border-radius:12px;padding:18px 20px;border:1px solid var(--line);background:#fff}
-  .verdict .top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px}
+  .verdict{margin-top:20px;border-radius:10px;padding:20px 22px;border:1px solid var(--line);background:var(--card);
+           box-shadow:0 1px 2px rgba(26,36,56,.04)}
+  .verdict .top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line-soft)}
   .metric{flex:1;min-width:160px}
-  .metric .cap{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
-  .metric .amt{font-size:22px;font-weight:bold;font-variant-numeric:tabular-nums;margin-top:2px}
-  .pos{color:var(--red)} .neg{color:var(--green)}
-  .badge{display:inline-block;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:.4px}
-  .badge.disp{background:var(--green-bg);color:var(--green)}
-  .badge.bloq{background:#fef2f2;color:var(--red)}
-  .foot{font-size:11px;color:var(--muted);margin-top:16px;line-height:1.6}
+  .metric .cap{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:600}
+  .metric .amt{font-size:21px;font-weight:600;font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;margin-top:4px}
+  .pos{color:var(--pos)} .neg{color:var(--neg)}
+  .badge{display:inline-block;padding:2px 9px;border-radius:3px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .badge.disp{background:var(--ok-bg);color:var(--ok)}
+  .badge.bloq{background:var(--bad-bg);color:var(--bad)}
+  .foot{font-size:12.5px;color:var(--ink);margin-top:16px;line-height:1.65;opacity:.85}
 </style>
 </head>
 <body>
@@ -161,8 +172,8 @@
         </div>
         <div class="line"><span class="lbl">Cuota mensual dividendo del hip.</span><span class="val" id="o_cuotahip"></span></div>
         <div class="line"><span class="lbl" id="o_cuotafin_lbl">Cuota mensual financiamiento</span><span class="val" id="o_cuotafin"></span></div>
-        <div class="big" style="background:#7c3aed;color:#fff">
-          <div class="cap" style="color:#e9d5ff" id="o_fase1_lbl">Total mensual (primeros años)</div>
+        <div class="big" style="background:var(--fin);color:#fff">
+          <div class="cap" style="color:#d8d2ef" id="o_fase1_lbl">Total mensual (primeros años)</div>
           <div class="amt" id="o_fase1" style="color:#fff"></div>
         </div>
         <div class="big">
@@ -185,8 +196,8 @@
           <div class="amt" id="t_cuotapre"></div>
         </div>
         <div class="line"><span class="lbl">Cuota mensual dividendo del hip.</span><span class="val" id="t_cuotahip"></span></div>
-        <div class="big" style="background:#0f766e;color:#fff">
-          <div class="cap" style="color:#99f6e4" id="t_fase1_lbl">Total mensual</div>
+        <div class="big" style="background:var(--nofin);color:#fff">
+          <div class="cap" style="color:#bfe6dd" id="t_fase1_lbl">Total mensual</div>
           <div class="amt" id="t_fase1" style="color:#fff"></div>
         </div>
       </div>
