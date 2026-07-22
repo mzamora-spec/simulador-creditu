@@ -77,7 +77,10 @@
   .badge{display:inline-block;padding:2px 9px;border-radius:3px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
   .badge.disp{background:var(--ok-bg);color:var(--ok)}
   .badge.bloq{background:var(--bad-bg);color:var(--bad)}
-  .foot{font-size:12.5px;color:var(--ink);margin-top:16px;line-height:1.65;opacity:.85}
+  .foot{font-size:13.5px;color:var(--ink);margin-top:16px;line-height:1.65}
+  .foot b{font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;color:var(--fin)}
+  .foot .footlbl{font-family:'IBM Plex Sans',sans-serif;font-size:10.5px;font-weight:700;
+                 text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
   header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
   .pdf-btn{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--brand-d);
            border:none;border-radius:6px;padding:10px 16px;font-family:'IBM Plex Sans',sans-serif;
@@ -405,12 +408,12 @@ function calc(){
   const postEl = $('v_postdiff'); postEl.textContent = (vPost>=0?'+':'') + uf(vPost);
   postEl.className = 'amt ' + (vPost>0?'pos':'neg');
 
+  const ahorroPct = cuotaPreSinFin>0 ? Math.abs(vPre)/cuotaPreSinFin : 0;
+  const ahorroTotal = Math.abs(vPre) * MESES_PRE_ESCRITURA;
   $('resumen').innerHTML =
-    `Con <b>financiamiento propio</b>, antes de escriturar el cliente paga <b>${uf(cuotaPreFin)}</b>/mes en vez de `+
-    `<b>${uf(cuotaPreSinFin)}</b>/mes (${uf(Math.abs(vPre))} menos). Desde la escrituración y durante `+
-    `${anosFin} ${anosFin==1?'año':'años'} paga <b>${uf(fase1Fin)}</b>/mes (dividendo + financiamiento) en vez de `+
-    `<b>${uf(U)}</b>/mes (${uf(Math.abs(vPost))} más); luego, los ${anosResto} ${anosResto==1?'año':'años'} `+
-    `restantes del hipotecario paga solo <b>${uf(fase2Fin)}</b>/mes.`;
+    `<span class="footlbl">Beneficio real</span> — ${uf(Math.abs(vPre))}/mes menos antes de escriturar `+
+    `(<b>${pct(ahorroPct)}</b> de ahorro): <b>${uf(ahorroTotal)}</b> menos en efectivo durante las 12 cuotas.<br>`+
+    `<span class="footlbl">Costo</span> — <b>${uf(Math.abs(vPost))}</b>/mes extra durante ${anosFin} ${anosFin==1?'año':'años'} tras la escrituración.`;
 }
 
 ['est','bod','pieCliente','pieFin','plazoC','tasa','plazoH'].forEach(id=>{
