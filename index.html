@@ -452,8 +452,7 @@ function calc(){
   const ahorroTotal = Math.abs(vPre) * MESES_PRE_ESCRITURA;
   $('resumen').innerHTML =
     `<span class="footlbl">Beneficio real</span> — ${uf(Math.abs(vPre))}/mes menos antes de escriturar `+
-    `(<b>${pct(ahorroPct)}</b> de ahorro): <b>${uf(ahorroTotal)}</b> menos en efectivo durante las 12 cuotas.<br>`+
-    `<span class="footlbl">Costo</span> — <b>${uf(Math.abs(vPost))}</b>/mes extra durante ${anosFin} ${anosFin==1?'año':'años'} tras la escrituración.`;
+    `(<b>${pct(ahorroPct)}</b> de ahorro): <b>${uf(ahorroTotal)}</b> menos en efectivo durante las 12 cuotas.`;
 }
 
 ['est','bod','aprobBancaria','pieCliente','pieFin','plazoC','tasa','plazoH'].forEach(id=>{
