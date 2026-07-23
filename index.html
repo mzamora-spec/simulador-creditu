@@ -29,7 +29,7 @@
   header .logo{height:40px;width:auto;display:block;margin-bottom:10px}
   header h1{margin:0;font-size:24px;font-weight:400;letter-spacing:.2px}
   .wrap{max-width:1180px;margin:0 auto;padding:26px 18px 60px}
-  .grid{display:grid;grid-template-columns:380px 1fr;gap:22px;align-items:start}
+  .grid{display:grid;grid-template-columns:440px 1fr;gap:22px;align-items:start}
   @media(max-width:900px){.grid{grid-template-columns:1fr}}
   .card{background:var(--card);border:1px solid var(--line);border-radius:10px;
         box-shadow:0 1px 2px rgba(33,43,38,.04),0 6px 16px rgba(33,43,38,.05)}
@@ -37,7 +37,7 @@
            text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-family:'IBM Plex Sans',sans-serif;font-weight:600}
   .card .body{padding:26px 24px 28px}
   label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin:20px 0 8px;
-        text-transform:uppercase;letter-spacing:.6px}
+        text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
   label:first-child{margin-top:0}
   input,select{width:100%;padding:11px 13px;font-size:14px;border:1px solid var(--line);
     border-radius:6px;font-family:'IBM Plex Sans',sans-serif;background:#fff;color:var(--ink);
@@ -147,7 +147,7 @@
 
       <div class="row2">
         <div>
-          <label>Aprobación bancaria (%)</label>
+          <label>Aprobación bancaria</label>
           <select id="aprobBancaria">
             <option value="75">75%</option>
             <option value="80" selected>80%</option>
