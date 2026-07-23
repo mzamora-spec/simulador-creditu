@@ -51,8 +51,8 @@
   @media(max-width:640px){.cols{grid-template-columns:1fr}}
   .panel{border-radius:10px;padding:20px;border:1px solid;border-top-width:3px;
          box-shadow:0 1px 2px rgba(33,43,38,.03)}
-  .panel.fin{background:var(--fin-tint);border-color:var(--fin-line);border-top-color:var(--fin);order:2}
-  .panel.nofin{background:var(--nofin-tint);border-color:var(--nofin-line);border-top-color:var(--nofin);order:1}
+  .panel.fin{background:var(--fin-tint);border-color:var(--fin-line);border-top-color:var(--fin)}
+  .panel.nofin{background:var(--nofin-tint);border-color:var(--nofin-line);border-top-color:var(--nofin)}
   .panel h3{margin:0 0 5px;font-size:17px;font-weight:400}
   .panel.fin h3{color:var(--fin)}
   .panel.nofin h3{color:var(--nofin)}
@@ -186,7 +186,7 @@
   <div>
     <div class="cols">
       <div class="panel fin">
-        <h3>Financiamiento propio</h3>
+        <h3>Financiamiento externo</h3>
         <div class="sub">Pie en 12 cuotas pre escrituración</div>
         <div class="line"><span class="lbl">Precio Lista</span><span class="val" id="o_precio"></span></div>
         <div class="line"><span class="lbl">Descuento (%)</span><span class="val" id="o_dscto"></span></div>
@@ -212,7 +212,7 @@
       </div>
 
       <div class="panel nofin">
-        <h3>Financiamiento externo</h3>
+        <h3>Financiamiento propio</h3>
         <div class="sub" style="visibility:hidden">Pie en 12 cuotas pre escrituración</div>
         <div class="line"><span class="lbl">Precio Lista</span><span class="val" id="t_precio"></span></div>
         <div class="line"><span class="lbl">Descuento (%)</span><span class="val" id="t_dscto"></span></div>
@@ -235,11 +235,11 @@
     <div class="verdict">
       <div class="top">
         <div class="metric">
-          <div class="cap">Diferencia cuota pre escrituración (propio − externo)</div>
+          <div class="cap">Diferencia cuota pre escrituración (externo − propio)</div>
           <div class="amt" id="v_prediff"></div>
         </div>
         <div class="metric">
-          <div class="cap">Diferencia total mensual post escrituración (propio − externo)</div>
+          <div class="cap">Diferencia total mensual post escrituración (externo − propio)</div>
           <div class="amt" id="v_postdiff"></div>
         </div>
       </div>
@@ -390,8 +390,8 @@ function calc(){
   $('o_fase2').innerHTML = ufb(fase2Fin);
   const vResto = fase2Fin - U;
   $('o_ahorrocap').innerHTML = vResto>0
-    ? `<b>+${uf(vResto)}</b>/mes vs. financiamiento externo, para siempre — el costo permanente de haber conservado capital propio al comprar.`
-    : `<b>${uf(Math.abs(vResto))}</b>/mes menos que financiamiento externo, para siempre.`;
+    ? `<b>+${uf(vResto)}</b>/mes vs. financiamiento propio, para siempre — el costo permanente de haber conservado capital al comprar.`
+    : `<b>${uf(Math.abs(vResto))}</b>/mes menos que financiamiento propio, para siempre.`;
 
   // Sin financiamiento outputs
   $('t_precio').textContent = uf(B);
