@@ -419,9 +419,10 @@ function calc(){
   $('o_fase2_lbl').textContent = `Total mensual (${anosResto} ${anosResto==1?'año':'años'} restantes)`;
   $('o_fase2').innerHTML = ufb(fase2Fin);
   const vResto = fase2Fin - U;
+  const ahorroCapital = Math.abs(cuotaPreFin - cuotaPreSinFin) * MESES_PRE_ESCRITURA;
   $('o_ahorrocap').innerHTML = vResto>0
-    ? `<b>+${uf(vResto)}</b>/mes vs. financiamiento propio, para siempre — el costo permanente de haber conservado capital al comprar.`
-    : `<b>${uf(Math.abs(vResto))}</b>/mes menos que financiamiento propio, para siempre.`;
+    ? `<b>+${uf(vResto)}</b>/mes durante los ${anosResto} ${anosResto==1?'año':'años'} de crédito que queden: es el precio de haber necesitado <b>${uf(ahorroCapital)}</b> menos de tu bolsillo al comprar.`
+    : `<b>${uf(Math.abs(vResto))}</b>/mes menos que financiamiento propio, durante los ${anosResto} ${anosResto==1?'año':'años'} de crédito que queden.`;
 
   // Sin financiamiento outputs
   $('t_precio').textContent = uf(B);
