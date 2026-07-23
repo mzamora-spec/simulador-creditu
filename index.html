@@ -421,8 +421,8 @@ function calc(){
   const vResto = fase2Fin - U;
   const ahorroCapital = Math.abs(cuotaPreFin - cuotaPreSinFin) * MESES_PRE_ESCRITURA;
   $('o_ahorrocap').innerHTML = vResto>0
-    ? `<b>+${uf(vResto)}</b>/mes durante los ${anosResto} ${anosResto==1?'año':'años'} de crédito que queden: es el precio de haber necesitado <b>${uf(ahorroCapital)}</b> menos de tu bolsillo al comprar.`
-    : `<b>${uf(Math.abs(vResto))}</b>/mes menos que financiamiento propio, durante los ${anosResto} ${anosResto==1?'año':'años'} de crédito que queden.`;
+    ? `<b>+${uf(vResto)}</b>/mes por <b>${uf(ahorroCapital)}</b> de capital directo para ti.`
+    : `<b>${uf(Math.abs(vResto))}</b>/mes menos, además de <b>${uf(ahorroCapital)}</b> de capital directo para ti.`;
 
   // Sin financiamiento outputs
   $('t_precio').textContent = uf(B);
