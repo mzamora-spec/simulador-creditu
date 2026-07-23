@@ -61,6 +61,7 @@
   .line:last-child{border-bottom:none}
   .line .lbl{color:var(--muted)}
   .line .val{font-weight:600;font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:12.5px}
+  .line .val .clphint{font-size:11px;font-weight:500;opacity:.65;letter-spacing:0;color:var(--muted)}
   .big{margin-top:14px;padding:15px 16px;border-radius:8px;background:#fff;border:1px solid rgba(33,43,38,.08)}
   .big .cap{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:600}
   .big .amt{font-size:25px;font-weight:600;font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;margin-top:4px}
@@ -137,8 +138,17 @@
         </div>
       </div>
 
-      <label>Pie total (%)</label>
-      <input id="pieTotal" readonly>
+      <div class="row2">
+        <div>
+          <label>Pie total (%)</label>
+          <input id="pieTotal" readonly>
+        </div>
+        <div>
+          <label>Aprobación bancaria (%)</label>
+          <input id="aprobBancaria" readonly>
+        </div>
+      </div>
+      <div class="hint" id="aprobWarn" style="display:none;color:#dc2626;">Fuera del rango habitual de aprobación bancaria (75%-90%).</div>
 
       <div class="row2">
         <div>
@@ -187,7 +197,7 @@
     <div class="cols">
       <div class="panel fin">
         <h3>Financiamiento externo</h3>
-        <div class="sub">Pie en 12 cuotas pre escrituración</div>
+        <div class="sub" style="visibility:hidden">Pie en 12 cuotas pre escrituración</div>
         <div class="line"><span class="lbl">Precio Lista</span><span class="val" id="o_precio"></span></div>
         <div class="line"><span class="lbl">Descuento (%)</span><span class="val" id="o_dscto"></span></div>
         <div class="line"><span class="lbl">Estacionamiento + Bodega</span><span class="val" id="o_estbod"></span></div>
@@ -213,7 +223,7 @@
 
       <div class="panel nofin">
         <h3>Financiamiento propio</h3>
-        <div class="sub" style="visibility:hidden">Pie en 12 cuotas pre escrituración</div>
+        <div class="sub">Pie en 12 cuotas pre escrituración</div>
         <div class="line"><span class="lbl">Precio Lista</span><span class="val" id="t_precio"></span></div>
         <div class="line"><span class="lbl">Descuento (%)</span><span class="val" id="t_dscto"></span></div>
         <div class="line"><span class="lbl">Estacionamiento + Bodega</span><span class="val" id="t_estbod"></span></div>
@@ -340,6 +350,9 @@ function calc(){
   const H = ICLIENTE + JFIN;                      // pie total (fracción)
   const pieTotalPct = pieClientePct+pieFinPct;
   $('pieTotal').value = pieTotalPct.toLocaleString('es-CL',{maximumFractionDigits:0}) + '%';
+  const aprobBancariaPct = 100 - pieTotalPct;
+  $('aprobBancaria').value = aprobBancariaPct.toLocaleString('es-CL',{maximumFractionDigits:0}) + '%';
+  $('aprobWarn').style.display = (aprobBancariaPct < 75 || aprobBancariaPct > 90) ? 'block' : 'none';
 
   const L = parseInt($('plazoC').value);         // Plazo financiamiento meses
   const Q = (parseFloat($('tasa').value)||0)/100;// Tasa anual
@@ -381,9 +394,9 @@ function calc(){
   $('o_piepre').textContent  = `${uf(pieClienteFinUF)} (${pieClientePct}%)`;
   $('o_piepost').textContent = `${uf(K)} (${pieFinPct}%)`;
   $('o_cuotapre').innerHTML = ufb(cuotaPreFin);
-  $('o_cuotahip').textContent = uf(S);
+  $('o_cuotahip').innerHTML = ufb(S);
   $('o_cuotafin_lbl').textContent = `Cuota mensual financiamiento (${L} cuotas)`;
-  $('o_cuotafin').textContent = uf(O);
+  $('o_cuotafin').innerHTML = ufb(O);
   $('o_fase1_lbl').textContent = `Total mensual (primeros ${anosFin} ${anosFin==1?'año':'años'})`;
   $('o_fase1').innerHTML = ufb(fase1Fin);
   $('o_fase2_lbl').textContent = `Total mensual (${anosResto} ${anosResto==1?'año':'años'} restantes)`;
@@ -401,7 +414,7 @@ function calc(){
   $('t_piepre').textContent  = `${uf(pieClienteSinFinUF)} (${pieTotalPct}%)`;
   $('t_piepost').textContent = `${uf(0)} (0%)`;
   $('t_cuotapre').innerHTML = ufb(cuotaPreSinFin);
-  $('t_cuotahip').textContent = uf(U);
+  $('t_cuotahip').innerHTML = ufb(U);
   $('t_fase1_lbl').textContent = `Total mensual (${R} años)`;
   $('t_fase1').innerHTML = ufb(U);
 
