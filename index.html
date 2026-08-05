@@ -360,7 +360,10 @@ function loadUnit(){
 
 function calc(){
   const B = parseFloat($('lista').value)||0;    // Precio lista
-  const C = parseFloat(UNITS[sel.value].min)||0; // Precio minimo (interno, no se muestra)
+  // Precio minimo (interno, no se muestra). Fallback a B (sin margen de descuento
+  // conocido) cuando la unidad no trae "min" -> evita el bug de "descuento ~100%"
+  // cuando la fuente de datos no incluye Precio Minimo (ej. reporte Productos de PlanOK).
+  const C = parseFloat(UNITS[sel.value].min) || B;
   const E = parseFloat($('est').value)||0;       // Estacionamiento
   const F = parseFloat($('bod').value)||0;       // Bodega
 
