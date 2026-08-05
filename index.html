@@ -29,8 +29,11 @@
                  letter-spacing:2.4px;text-transform:uppercase;color:var(--gold-lt)}
   header .logo{height:40px;width:auto;display:block;margin-bottom:10px}
   header h1{margin:0;font-size:24px;font-weight:400;letter-spacing:.2px}
-  .wrap{max-width:1180px;margin:0 auto;padding:26px 18px 60px}
-  .grid{display:grid;grid-template-columns:440px 1fr;gap:22px;align-items:start}
+  .wrap{max-width:1320px;margin:0 auto;padding:26px 18px 60px}
+  .grid{display:grid;grid-template-columns:420px 1fr;gap:22px;align-items:start}
+  /* min-width:0 en los hijos del grid: sin esto el contenido con nowrap fuerza el
+     ancho de la columna y toda la pagina queda con scroll horizontal. */
+  .grid>*{min-width:0}
   @media(max-width:900px){.grid{grid-template-columns:1fr}}
   .card{background:var(--card);border:1px solid var(--line);border-radius:10px;
         box-shadow:0 1px 2px rgba(33,43,38,.04),0 6px 16px rgba(33,43,38,.05)}
@@ -46,13 +49,23 @@
   input:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(28,63,102,.12)}
   input[readonly]{background:var(--paper);color:var(--ink);font-weight:600;font-family:'IBM Plex Mono',ui-monospace,monospace}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .row2>*{min-width:0}
+  /* En pantallas angostas las etiquetas del formulario (nowrap) no caben en media
+     columna: se apila en una sola columna y se permite el salto de linea. */
+  @media(max-width:560px){
+    .row2{grid-template-columns:1fr}
+    label{white-space:normal}
+  }
   .hint{font-size:11.5px;color:var(--muted);margin-top:7px;font-weight:normal;text-transform:none;letter-spacing:0;line-height:1.5}
   .hint.error{color:var(--bad);font-weight:600}
   .unitinfo{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin-top:9px;font-size:12px;color:var(--muted)}
   .unitinfo b{color:var(--ink);font-weight:600}
-  .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-  @media(max-width:640px){.cols{grid-template-columns:1fr}}
-  .panel{border-radius:10px;padding:20px;border:1px solid;border-top-width:3px;
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .cols>*{min-width:0}
+  /* Bajo ~1150px los dos paneles no caben lado a lado sin apretar las etiquetas
+     -> se apilan (siguen alineados, solo uno debajo del otro). */
+  @media(max-width:1150px){.cols{grid-template-columns:1fr}}
+  .panel{border-radius:10px;padding:20px 18px;border:1px solid;border-top-width:3px;
          box-shadow:0 1px 2px rgba(33,43,38,.03)}
   .panel.fin{background:var(--fin-tint);border-color:var(--fin-line);border-top-color:var(--fin)}
   .panel.nofin{background:var(--nofin-tint);border-color:var(--nofin-line);border-top-color:var(--nofin)}
@@ -64,7 +77,11 @@
   .line:last-child{border-bottom:none}
   .line .lbl{color:var(--muted)}
   .line{flex-wrap:nowrap}
-  .line .lbl{white-space:nowrap;padding-right:12px}
+  /* La etiqueta puede cortarse en varias lineas si falta ancho (el numero .val nunca
+     se corta). Los dos paneles estan alineados fila por fila, asi que la fila oculta
+     de "Sin Financiamiento" copia por JS el texto de la fila de financiamiento
+     (t_cuotafin_lbl) para que ambas ocupen exactamente el mismo alto. */
+  .line .lbl{white-space:normal;padding-right:12px;min-width:0}
   .line .val{font-weight:600;font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:12.5px;white-space:nowrap}
   .line .val .clphint{font-size:10px;font-weight:500;opacity:.65;letter-spacing:0;color:var(--muted);margin-left:3px}
   .big{margin-top:14px;padding:15px 16px;border-radius:8px;background:#fff;border:1px solid rgba(33,43,38,.08);overflow-x:auto}
@@ -249,7 +266,7 @@
           <div class="amt" id="t_cuotapre"></div>
         </div>
         <div class="line"><span class="lbl">Cuota mensual dividendo del hip.</span><span class="val" id="t_cuotahip"></span></div>
-        <div class="line" style="visibility:hidden"><span class="lbl">Cuota mensual financiamiento</span><span class="val">0,0 UF</span></div>
+        <div class="line" style="visibility:hidden"><span class="lbl" id="t_cuotafin_lbl">Cuota mensual financiamiento</span><span class="val" id="t_cuotafin_val">0,0 UF</span></div>
         <div class="big" style="background:var(--nofin);color:#fff;min-height:201px;display:flex;flex-direction:column;justify-content:center">
           <div class="cap" style="color:#cdd8e4" id="t_fase1_lbl">Total mensual</div>
           <div class="amt" id="t_fase1" style="color:#fff"></div>
@@ -439,6 +456,12 @@ function calc(){
   $('o_cuotahip').innerHTML = ufb(S);
   $('o_cuotafin_lbl').textContent = `Cuota mensual financiamiento (${L} cuotas)`;
   $('o_cuotafin').innerHTML = ufb(O);
+  // Misma etiqueta Y mismo valor en la fila oculta del panel sin financiamiento: si
+  // el valor fuera mas corto, la etiqueta tendria mas espacio y se cortaria en otra
+  // cantidad de lineas -> los recuadros de abajo quedarian desalineados.
+  // OJO: copiar DESPUES de asignar o_cuotafin, o se copia el valor del calculo anterior.
+  $('t_cuotafin_lbl').textContent = $('o_cuotafin_lbl').textContent;
+  $('t_cuotafin_val').innerHTML = $('o_cuotafin').innerHTML;
   $('o_fase1_lbl').textContent = `Total mensual (primeros ${anosFin} ${anosFin==1?'año':'años'})`;
   $('o_fase1').innerHTML = ufb(fase1Fin);
   $('o_fase2_lbl').textContent = `Total mensual (${anosResto} ${anosResto==1?'año':'años'} restantes)`;
